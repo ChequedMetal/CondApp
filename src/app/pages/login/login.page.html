@@ -1,0 +1,69 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Iniciar Sesión</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="welcome-container">
+    <div class="ion-text-center">
+      <h1>Bienvenido</h1>
+      <p>Por favor inicia sesión para continuar</p>
+    </div>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Inicio de Sesión</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Correo Electrónico</ion-label>
+          <ion-input 
+            type="email" 
+            formControlName="email"
+            placeholder="usuario@ejemplo.com"
+            required>
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input 
+            type="password" 
+            formControlName="password"
+            placeholder="••••••"
+            required>
+          </ion-input>
+        </ion-item>
+
+
+        <ion-button 
+          expand="block" 
+          type="submit" 
+          class="login-button"
+          [disabled]="!loginForm.valid"
+          shape="round">
+          Iniciar Sesión
+        </ion-button>
+
+        <div class="ion-text-center">
+          <span class="forgot-password">
+            ¿Olvidaste tu contraseña?
+          </span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </form>
+
+  <ion-toast
+    [isOpen]="showError"
+    [message]="errorMessage"
+    [duration]="4000"
+    (didDismiss)="showError = false"
+    position="top"
+    color="danger">
+  </ion-toast>
+</ion-content>

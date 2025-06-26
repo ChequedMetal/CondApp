@@ -1,20 +1,139 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-tabs>
+  <!-- TAB ANUNCIOS -->
+  <ion-tab tab="anuncios">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Anuncios</ion-title>
+      </ion-toolbar>
+    </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list lines="none">
+        <ion-card *ngFor="let anuncio of anuncios">
+          <ion-card-header>
+            <ion-item lines="none">
+              <ion-avatar slot="start">
+                <ion-img [src]="anuncio.avatar || 'assets/img/default-avatar.png'"></ion-img>
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ anuncio.autor }}</h2>
+                <p>{{ anuncio.fecha | date:'dd MMM yyyy' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-card-title>{{ anuncio.titulo }}</ion-card-title>
+          </ion-card-header>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
-</ion-content>
+          <ion-card-content>
+            <p>{{ anuncio.descripcion }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-list>
+    </ion-content>
+  </ion-tab>
+
+  <!-- TAB MERCADO -->
+  <ion-tab tab="mercado">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Mercado</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <ion-list lines="none">
+        <ion-card *ngFor="let item of productos">
+          <ion-card-header>
+            <ion-item lines="none">
+              <ion-avatar slot="start">
+                <ion-img [src]="item.avatar || 'assets/img/default-avatar.png'"></ion-img>
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ item.autor }}</h2>
+                <p>{{ item.fecha | date:'dd MMM yyyy' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-card-title>{{ item.titulo }}</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <p>{{ item.descripcion }}</p>
+          </ion-card-content>
+
+          <ion-item lines="none">
+            <ion-badge slot="end" color="success">{{ item.precio }}</ion-badge>
+          </ion-item>
+        </ion-card>
+      </ion-list>
+    </ion-content>
+  </ion-tab>
+
+  <!-- TAB RECLAMOS -->
+  <ion-tab tab="reclamos">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Reclamos</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <ion-list lines="none">
+        <ion-card *ngFor="let reclamo of reclamos">
+          <ion-card-header>
+            <ion-item lines="none">
+              <ion-avatar slot="start">
+                <ion-img [src]="reclamo.avatar || 'assets/img/default-avatar.png'"></ion-img>
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ reclamo.autor }}</h2>
+                <p>{{ reclamo.fecha | date:'dd MMM yyyy' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-card-title>{{ reclamo.titulo }}</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <p>{{ reclamo.descripcion }}</p>
+          </ion-card-content>
+
+          <ion-item lines="none">
+            <ion-badge slot="end" color="danger">{{ reclamo.estado }}</ion-badge>
+          </ion-item>
+        </ion-card>
+      </ion-list>
+    </ion-content>
+  </ion-tab>
+
+  <!-- FAB flotante -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" style="bottom: 60px;">
+    <ion-fab-button>
+      <ion-icon name="chevron-up-circle"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button>
+        <ion-icon name="settings-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button>
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button>
+        <ion-icon name="contrast-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+
+  <!-- Menú inferior -->
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="anuncios">
+      <ion-icon name="megaphone-outline"></ion-icon>
+      <ion-label>Anuncios</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="mercado">
+      <ion-icon name="cart-outline"></ion-icon>
+      <ion-label>Mercado</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="reclamos">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <ion-label>Reclamos</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
