@@ -1,0 +1,7 @@
+{
+  "name": "CondApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
