@@ -1,4 +1,11 @@
 <ion-tabs>
+  <!-- FAB Logout global -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="danger" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
   <!-- TAB ANUNCIOS -->
   <ion-tab tab="anuncios">
     <ion-header>
@@ -109,17 +116,26 @@
       <ion-icon name="chevron-up-circle"></ion-icon>
     </ion-fab-button>
     <ion-fab-list side="top">
+      <!-- Botón exclusivo para el panel de admin -->
+      <ion-fab-button *ngIf="userRole === 'admin'" (click)="goToPanelAdmin()" title="Panel de administración">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Botón de configuración general -->
       <ion-fab-button>
         <ion-icon name="settings-outline"></ion-icon>
       </ion-fab-button>
+  
       <ion-fab-button>
         <ion-icon name="chatbubbles-outline"></ion-icon>
       </ion-fab-button>
+  
       <ion-fab-button>
         <ion-icon name="contrast-outline"></ion-icon>
       </ion-fab-button>
     </ion-fab-list>
   </ion-fab>
+  
 
   <!-- Menú inferior -->
   <ion-tab-bar slot="bottom">

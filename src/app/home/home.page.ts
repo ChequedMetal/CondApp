@@ -25,6 +25,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   megaphoneOutline,
   cartOutline,
@@ -68,7 +69,7 @@ export class HomePage {
       descripcion: 'La próxima reunión será el viernes a las 19:00 en el salón de eventos.',
       fecha: new Date(),
       autor: 'Directiva',
-      avatar: 'assets/img/directiva.jpg',
+      avatar: '',
       categoria: 'Comunidad'
     }
   ];
@@ -87,7 +88,7 @@ export class HomePage {
       descripcion: 'Bicicleta urbana, talla M, necesita revisión.',
       fecha: new Date(),
       autor: 'Lucía Torres',
-      avatar: 'assets/img/lucia.jpg',
+      avatar: '',
       precio: '$25.000'
     }
   ];
@@ -106,12 +107,12 @@ export class HomePage {
       descripcion: 'El foco del 2° piso lleva días apagado. Solicito reposición.',
       fecha: new Date(),
       autor: 'Diego Contreras',
-      avatar: 'assets/img/diego.jpg',
+      avatar: '',
       estado: 'En progreso'
     }
   ];
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({
       megaphoneOutline,
       cartOutline,
@@ -121,5 +122,23 @@ export class HomePage {
       chatbubblesOutline,
       contrastOutline
     });
+  }
+
+  /**
+   * Método temporal para cerrar sesión.
+   * Elimina la sesión del usuario y redirige al login.
+   */
+  logout() {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
+  }
+
+  userRole: string = 'usuario';
+  ngOnInit() {
+    this.userRole = localStorage.getItem('userRole') || 'user';
+  }
+
+  goToPanelAdmin() {
+    this.router.navigate(['/panel-admin']);
   }
 }
