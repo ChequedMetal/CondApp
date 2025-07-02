@@ -110,13 +110,14 @@
     </ion-content>
   </ion-tab>
 
+  <!-- Debug: userRole = {{ userRole }} -->
   <!-- FAB flotante -->
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" style="bottom: 60px;">
     <ion-fab-button>
       <ion-icon name="chevron-up-circle"></ion-icon>
     </ion-fab-button>
     <ion-fab-list side="top">
-      <!-- Botón exclusivo para el panel de admin -->
+      <!-- Botón exclusivo para administradores -->
       <ion-fab-button *ngIf="userRole === 'admin'" (click)="goToPanelAdmin()" title="Panel de administración">
         <ion-icon name="shield-checkmark-outline"></ion-icon>
       </ion-fab-button>
@@ -152,3 +153,12 @@
     </ion-tab-button>
   </ion-tab-bar>
 </ion-tabs>
+
+<!-- Toast para mensajes -->
+<ion-toast
+  [isOpen]="showToast"
+  [message]="toastMessage"
+  [duration]="3000"
+  [color]="toastColor"
+  (didDismiss)="showToast = false">
+</ion-toast>

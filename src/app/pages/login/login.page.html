@@ -1,63 +1,77 @@
   <ion-content [fullscreen]="true" class="ion-padding">
-    <div class="welcome-container">
-      <div class="ion-text-center">
-        <h1>Bienvenido</h1>
-        <p>Por favor inicia sesión para continuar</p>
-      </div>
+  <div class="welcome-container">
+    <div class="ion-text-center">
+      <h1>Bienvenido</h1>
+      <p>Por favor inicia sesión para continuar</p>
     </div>
+  </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="login()">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>Inicio de Sesión</ion-card-title>
-        </ion-card-header>
-        
-        <ion-card-content>
-          <ion-item>
-            <ion-label position="floating">Correo Electrónico</ion-label>
-            <ion-input 
-              type="email" 
-              formControlName="email"
-              placeholder="usuario@ejemplo.com"
-              required>
-            </ion-input>
-          </ion-item>
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Inicio de Sesión</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Correo Electrónico</ion-label>
+          <ion-input 
+            type="email" 
+            formControlName="email"
+            placeholder="usuario@ejemplo.com"
+            required>
+          </ion-input>
+          <ion-note slot="error" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']">
+            El correo es requerido
+          </ion-note>
+          <ion-note slot="error" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']">
+            Ingresa un correo válido
+          </ion-note>
+        </ion-item>
 
-          <ion-item>
-            <ion-label position="floating">Contraseña</ion-label>
-            <ion-input 
-              type="password" 
-              formControlName="password"
-              placeholder="••••••"
-              required>
-            </ion-input>
-          </ion-item>
-
-
+        <ion-item>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input 
+            [type]="showPassword ? 'text' : 'password'" 
+            formControlName="password"
+            placeholder="••••••"
+            required>
+          </ion-input>
           <ion-button 
-            expand="block" 
-            type="submit" 
-            class="login-button"
-            [disabled]="!loginForm.valid"
-            shape="round">
-            Iniciar Sesión
+            fill="clear" 
+            slot="end" 
+            (click)="showPassword = !showPassword"
+            aria-label="Mostrar/ocultar contraseña">
+            <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
           </ion-button>
+          <ion-note slot="error" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']">
+            La contraseña es requerida
+          </ion-note>
+          <ion-note slot="error" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['minlength']">
+            Mínimo 6 caracteres
+          </ion-note>
+        </ion-item>
 
-          <div class="ion-text-center">
-            <span class="forgot-password">
-              ¿Olvidaste tu contraseña?
-            </span>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </form>
+        <ion-button 
+          expand="block" 
+          type="submit" 
+          class="login-button"
+          [disabled]="!loginForm.valid || isLoading"
+          shape="round">
+          <ion-spinner *ngIf="isLoading" name="crescent" class="ion-margin-end"></ion-spinner>
+          <span *ngIf="!isLoading">Iniciar Sesión</span>
+        </ion-button>
 
-    <ion-toast
-      [isOpen]="showError"
-      [message]="errorMessage"
-      [duration]="4000"
-      (didDismiss)="showError = false"
-      position="top"
-      color="danger">
-    </ion-toast>
-  </ion-content>
+        <div class="ion-text-center ion-margin-top">
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            routerLink="/recuperar-contrasena"
+            color="medium">
+            ¿Olvidaste tu contraseña?
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>

@@ -1,23 +1,32 @@
+// src/app/login/login.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { IonicModule, Platform, ToastController } from '@ionic/angular';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Platform, ToastController } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
+
+// Importaciones de componentes de Ionic
 import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
-  IonToolbar, 
-  IonButton, 
-  IonInput, 
-  IonItem, 
-  IonLabel, 
-  IonCard, 
-  IonCardContent, 
-  IonCardHeader, 
-  IonCardTitle, 
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonButton,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
   IonToast,
+  IonIcon,
+  IonSpinner,
+  IonNote
 } from '@ionic/angular/standalone';
+
+import { AuthService, AppUser } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -25,136 +34,82 @@ import {
   styleUrls: ['./login.page.scss'],
   standalone: true,
   imports: [
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
-    IonToolbar, 
-    IonButton, 
-    IonInput, 
-    IonItem, 
-    IonLabel, 
-    IonCard, 
-    IonCardContent, 
-    IonCardHeader, 
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonButton,
+    IonInput,
+    IonItem,
+    IonLabel,
+    IonCard,
+    IonCardContent,
+    IonCardHeader,
     IonCardTitle,
     IonToast,
-    CommonModule, 
-    FormsModule, 
+    IonIcon,
+    IonSpinner,
+    IonNote,
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule
   ]
 })
-export class LoginPage {
-  // Estados del componente
-  isLoading = false;
-  showPassword = false;
-  isKeyboardOpen = false;
-  showError = false;
-  errorMessage = '';
-
-  // Inicializar el formulario con valores por defecto
-  loginForm = this.formBuilder.group({
+export class LoginPage implements OnInit {
+  // Formulario reactivo
+  loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  // Credenciales de prueba
-  private readonly USUARIOS = [
-    {
-      email: 'usuario@ejemplo.com',
-      password: 'password123',
-      nombre: 'Usuario Normal',
-      rol: 'usuario',
-      avatar: 'assets/avatars/user.png'
-    },
-    {
-      email: 'admin@ejemplo.com',
-      password: 'admin123',
-      nombre: 'Administrador',
-      rol: 'admin',
-      avatar: 'assets/avatars/admin.png'
-    }
-  ];
-  
-  // Usuario actual
-  usuarioActual: any = null;
-
-  // Configuración responsive
-  isMobile = false;
-  isTablet = false;
-  isDesktop = false;
+  // Estados UI
+  isLoading = false;
+  showPassword = false;
+  isKeyboardOpen = false;
 
   constructor(
-    private formBuilder: FormBuilder,
+    private fb: FormBuilder,
+    private authService: AuthService,
     private router: Router,
-    private platform: Platform,
-    private toastController: ToastController
-  ) {
-    // Verificar si ya hay una sesión activa
-    const usuarioGuardado = localStorage.getItem('usuario');
-    if (usuarioGuardado) {
-      this.usuarioActual = JSON.parse(usuarioGuardado);
-      this.redirigirSegunRol();
-    }
-  }
-  
-  private redirigirSegunRol() {
-    if (this.usuarioActual) {
-      if (this.usuarioActual.rol === 'admin') {
-        this.router.navigate(['/admin']);
-      } else {
-        this.router.navigate(['/home']);
-      }
-    }
-  }
+    private toastCtrl: ToastController,
+    private platform: Platform
+  ) {}
 
-  // initForm() {
-  //   // El formulario ya está inicializado en la declaración de la propiedad
-  //   // Este método se mantiene por compatibilidad
-  // }
+  ngOnInit() {
+    // Redirigir a home después de iniciar sesión, independientemente del rol
+    this.authService.appUser$.subscribe((user: AppUser | null) => {
+      if (user) {
+        this.router.navigateByUrl('/home', { replaceUrl: true });
+      }
+    });
+  }
 
   async login() {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      this.isLoading = true;
-      
-      // Simular tiempo de carga
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const usuario = this.USUARIOS.find(u => u.email === email && u.password === password);
-      
-      if (usuario) {
-        this.usuarioActual = usuario;
-        this.showError = false;
-        
-        // Guardar datos de sesión
-        localStorage.setItem('usuario', JSON.stringify(usuario));
-        
-        // Redirigir a todos a /home
-        this.router.navigate(['/home']);
-      } else {
-        this.showError = true;
-        this.errorMessage = 'Credenciales incorrectas. Intente nuevamente.';
-        await this.mostrarError();
-      }
-    } else {
-      this.showError = true;
-      this.errorMessage = 'Por favor complete todos los campos correctamente.';
-      await this.mostrarError();
+    if (this.loginForm.invalid) {
+      return this.showToast('Por favor completa todos los campos correctamente.', 'danger');
     }
-    
-    this.isLoading = false;
+
+    const { email, password } = this.loginForm.value;
+    this.isLoading = true;
+
+    try {
+      // Intentar login en Firebase
+      await this.authService.login(email!, password!);
+      // La suscripción en ngOnInit se encargará de redirigir
+    } catch (err) {
+      console.error('Error en login:', err);
+      await this.showToast('Credenciales incorrectas.', 'danger');
+    } finally {
+      this.isLoading = false;
+    }
   }
-  
-  async mostrarError() {
-    const toast = await this.toastController.create({
-      message: this.errorMessage,
+
+  private async showToast(message: string, color: 'danger' | 'success') {
+    const toast = await this.toastCtrl.create({
+      message,
       duration: 3000,
       position: 'bottom',
-      color: 'danger',
-      buttons: [{
-        icon: 'close',
-        role: 'cancel'
-      }]
+      color
     });
     await toast.present();
   }

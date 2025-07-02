@@ -17,10 +17,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage)
   },
   {
-    path: 'gestionar-mercado',
-    loadComponent: () => import('./pages/gestionar-mercado/gestionar-mercado.page').then( m => m.GestionarMercadoPage)
-  },
-  {
     path: 'gestionar-reclamos',
     loadComponent: () => import('./pages/gestionar-reclamos/gestionar-reclamos.page').then( m => m.GestionarReclamosPage)
   },
@@ -37,7 +33,8 @@ export const routes: Routes = [
   {
     path: 'crear-anuncio',
     loadComponent: () => import('./pages/crear-anuncio/crear-anuncio.page').then( m => m.CrearAnuncioPage)
-  },  {
+  },
+  {
     path: 'crear-producto',
     loadComponent: () => import('./pages/crear-producto/crear-producto.page').then( m => m.CrearProductoPage)
   },
@@ -45,8 +42,5 @@ export const routes: Routes = [
     path: 'crear-reclamo',
     loadComponent: () => import('./pages/crear-reclamo/crear-reclamo.page').then( m => m.CrearReclamoPage)
   },
-
-
-
-
 ];
+

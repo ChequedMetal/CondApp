@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   IonContent,
   IonHeader,
@@ -21,11 +21,14 @@ import {
   IonLabel,
   IonBadge,
   IonAvatar,
-  IonImg
+  IonImg,
+  IonToast
 } from '@ionic/angular/standalone';
 
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { finalize } from 'rxjs/operators';
 import {
   megaphoneOutline,
   cartOutline,
@@ -45,7 +48,7 @@ import { addIcons } from 'ionicons';
     IonContent, IonHeader, IonIcon, IonTab, IonTabBar, IonTabButton, IonTabs,
     IonTitle, IonToolbar, IonFab, IonFabButton, IonFabList, IonList, IonCard,
     IonCardHeader, IonCardTitle, IonCardContent, IonItem,
-    IonLabel, IonBadge, IonAvatar, IonImg,
+    IonLabel, IonBadge, IonAvatar, IonImg, IonToast,
 
     // Angular
     CommonModule,
@@ -54,8 +57,11 @@ import { addIcons } from 'ionicons';
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
-export class HomePage {
-  userRole: string = 'admin';
+export class HomePage implements OnInit {
+  userRole: 'admin' | 'usuario' = 'usuario';
+  showToast = false;
+  toastMessage = '';
+  toastColor = 'success';
 
   anuncios = [
     {
@@ -114,7 +120,30 @@ export class HomePage {
     }
   ];
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+  
+  ngOnInit() {
+    console.log('Iniciando HomePage, suscribiéndose a appUser$');
+    // Suscribirse a los cambios del usuario
+    this.authService.appUser$.subscribe({
+      next: (user) => {
+        console.log('Usuario actualizado:', user);
+        if (user) {
+          // Usar el campo 'role' del usuario
+          this.userRole = user.role || 'usuario';
+          console.log('Rol del usuario actualizado a:', this.userRole);
+        } else {
+          this.userRole = 'usuario';
+          console.log('No hay usuario, rol establecido a: usuario');
+        }
+      },
+      error: (error) => {
+        console.error('Error en la suscripción a appUser$:', error);
+      }
+    });
     addIcons({
       megaphoneOutline,
       cartOutline,
@@ -127,15 +156,28 @@ export class HomePage {
   }
 
   /**
-   * Método temporal para cerrar sesión.
-   * Elimina la sesión del usuario y redirige al login.
+   * Cierra la sesión del usuario y redirige al login
    */
-  logout() {
-    this.router.navigate(['/login']);
+  async logout() {
+    try {
+      await this.authService.logout();
+      // Navegar a la página de login sin historial de navegación
+      this.router.navigate(['/login'], { replaceUrl: true });
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      this.toastMessage = 'Error al cerrar sesión';
+      this.toastColor = 'danger';
+      this.showToast = true;
+    }
   }
 
   goToPanelAdmin() {
     this.router.navigate(['/panel-admin']);
+  }
+  
+  // Limpiar suscripciones al destruir el componente
+  ngOnDestroy() {
+    // La suscripción se limpiará automáticamente gracias a async pipe
   }
 
 }
