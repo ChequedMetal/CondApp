@@ -55,6 +55,8 @@ import { addIcons } from 'ionicons';
   styleUrls: ['./home.page.scss']
 })
 export class HomePage {
+  userRole: string = 'admin';
+
   anuncios = [
     {
       titulo: 'Corte de agua programado',
@@ -129,16 +131,11 @@ export class HomePage {
    * Elimina la sesión del usuario y redirige al login.
    */
   logout() {
-    localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
-  }
-
-  userRole: string = 'usuario';
-  ngOnInit() {
-    this.userRole = localStorage.getItem('userRole') || 'user';
   }
 
   goToPanelAdmin() {
     this.router.navigate(['/panel-admin']);
   }
+
 }

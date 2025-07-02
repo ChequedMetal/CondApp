@@ -21,10 +21,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/gestionar-mercado/gestionar-mercado.page').then( m => m.GestionarMercadoPage)
   },
   {
-    path: 'gestionar-anuncios',
-    loadComponent: () => import('./pages/gestionar-anuncios/gestionar-anuncios.page').then( m => m.GestionarAnunciosPage)
-  },
-  {
     path: 'gestionar-reclamos',
     loadComponent: () => import('./pages/gestionar-reclamos/gestionar-reclamos.page').then( m => m.GestionarReclamosPage)
   },
@@ -38,6 +34,19 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/panel-admin/panel-admin.page').then( m => m.PanelAdminPage),
     canActivate: [authGuard]
   },
+  {
+    path: 'crear-anuncio',
+    loadComponent: () => import('./pages/crear-anuncio/crear-anuncio.page').then( m => m.CrearAnuncioPage)
+  },  {
+    path: 'crear-producto',
+    loadComponent: () => import('./pages/crear-producto/crear-producto.page').then( m => m.CrearProductoPage)
+  },
+  {
+    path: 'crear-reclamo',
+    loadComponent: () => import('./pages/crear-reclamo/crear-reclamo.page').then( m => m.CrearReclamoPage)
+  },
+
+
 
 
 ];

@@ -22,45 +22,6 @@
     color: var(--ion-color-primary);
   }
 
-// Variables de diseño
-:host {
-  --ion-background-color: #f8f9fa;
-  --ion-color-primary: #428cff;
-  --ion-color-secondary: #0cd1e8;
-  --ion-color-danger: #f04141;
-  --ion-color-medium: #989aa2;
-  --border-radius: 12px;
-  --transition: all 0.3s ease;
-}
-
-// Estilos base
-ion-content {
-  --background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-  --keyboard-offset: 0px !important;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 40vh;
-    background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
-    border-bottom-left-radius: 60px;
-    border-bottom-right-radius: 60px;
-    z-index: 0;
-  }
-}
-
 // Contenedor principal
 .login-wrapper {
   width: 100%;
@@ -119,52 +80,6 @@ ion-item {
   }
 }
 
-ion-button {
-  --border-radius: 12px;
-  --padding-top: 14px;
-  --padding-bottom: 14px;
-  --padding-start: 24px;
-  --padding-end: 24px;
-  height: 52px;
-  font-weight: 600;
-  font-size: 1rem;
-  margin: 16px 0 8px;
-  --box-shadow: none;
-  text-transform: none;
-  letter-spacing: 0.5px;
-}
-
-ion-input {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 8px;
-  --padding-top: 10px;
-  --padding-bottom: 10px;
-}
-
-ion-label {
-  font-weight: 500;
-  color: #495057;
-  margin-bottom: 4px;
-  padding-left: 8px;
-}
-
-h1 {
-  color: var(--ion-color-primary);
-  font-weight: 700;
-  margin: 0 0 8px;
-  font-size: 1.75rem;
-  line-height: 1.2;
-}
-
-p {
-  color: #6c757d;
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.4;
-}
 
 .forgot-password {
   font-size: 0.9rem;

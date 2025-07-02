@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Crear Producto</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="productoForm" (ngSubmit)="guardar()">
+
+    <!-- Selección de Imagen -->
+    <div class="ion-margin-bottom">
+      <ion-item>
+        <ion-label position="floating">Imagen (Opcional)</ion-label>
+        <ion-button fill="clear" (click)="seleccionarImagen()" slot="end">
+          <ion-icon name="image" slot="icon-only"></ion-icon>
+          Seleccionar
+        </ion-button>
+      </ion-item>
+      <div *ngIf="imagenPreview" class="imagen-preview ion-margin-bottom">
+        <img [src]="imagenPreview" alt="Preview">
+      </div>
+      <input type="file" accept="image/*"
+             #fileInput
+             (change)="onFileSelected($event)"
+             style="display: none;" />
+    </div>
+
+    <!-- Datos del Producto -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Información Básica</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea formControlName="descripcion" autoGrow="true" rows="3"></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Precio (CLP)</ion-label>
+          <ion-input formControlName="precio" type="number" placeholder="10000"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Botones -->
+    <div class="ion-margin-top">
+      <ion-button expand="block" type="submit" [disabled]="productoForm.invalid">
+        <ion-icon name="send" slot="start"></ion-icon>
+        Publicar Producto
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="medium" (click)="cancelar()">
+        <ion-icon name="close" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </div>
+
+  </form>
+</ion-content>

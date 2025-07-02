@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Crear Anuncio</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="anuncioForm" (ngSubmit)="publicar()">
+    <ion-item>
+      <ion-label position="floating">Título</ion-label>
+      <ion-input formControlName="titulo"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Mensaje</ion-label>
+      <ion-textarea formControlName="mensaje" autoGrow="true"></ion-textarea>
+    </ion-item>
+
+    <ion-button expand="block" type="submit" [disabled]="anuncioForm.invalid">
+      Publicar Anuncio
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" color="medium" (click)="cancelar()">
+      Cancelar
+    </ion-button>
+  </form>
+</ion-content>

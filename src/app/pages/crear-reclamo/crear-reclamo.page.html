@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Crear Reclamo</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="reclamoForm" (ngSubmit)="enviar()">
+    <ion-item>
+      <ion-label position="floating">Descripción</ion-label>
+      <ion-textarea
+        formControlName="mensaje"
+        autoGrow="true"
+        placeholder="Escribe tu reclamo aquí">
+      </ion-textarea>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      type="submit"
+      [disabled]="reclamoForm.invalid">
+      Enviar Reclamo
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="medium"
+      (click)="cancelar()">
+      Cancelar
+    </ion-button>
+  </form>
+</ion-content>

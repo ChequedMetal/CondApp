@@ -1,13 +1,49 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>crear-usuarios</ion-title>
+    <ion-title>Crear Usuarios</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">crear-usuarios</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <form [formGroup]="usuarioForm" (ngSubmit)="crearUsuario()">
+    <ion-item>
+      <ion-label position="stacked">RUT</ion-label>
+      <ion-input formControlName="rut" placeholder="12345678-5"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Nombre Completo</ion-label>
+      <ion-input formControlName="nombre" placeholder="Juan Pérez"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Celular</ion-label>
+      <ion-input formControlName="celular" type="tel" placeholder="+56912345678"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Número de Casa</ion-label>
+      <ion-input formControlName="casa" type="number" placeholder="12"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Correo Electrónico</ion-label>
+      <ion-input formControlName="correo" type="email" placeholder="usuario@ejemplo.com"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Rol</ion-label>
+      <ion-select formControlName="rol">
+        <ion-select-option value="user">Usuario</ion-select-option>
+        <ion-select-option value="admin">Administrador</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button expand="block" type="submit" [disabled]="usuarioForm.invalid">
+      Crear Usuario
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="cancelar()">
+      Cancelar
+    </ion-button>
+  </form>
 </ion-content>
