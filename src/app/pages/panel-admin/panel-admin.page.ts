@@ -11,6 +11,9 @@ import {
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Location } from '@angular/common';
+import { IonButtons, IonButton } from '@ionic/angular/standalone';
+
 
 import {
   settingsOutline,
@@ -19,6 +22,7 @@ import {
   personAddOutline
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+
 
 addIcons({ settingsOutline, cartOutline, alertCircleOutline, personAddOutline });
 
@@ -37,7 +41,15 @@ addIcons({ settingsOutline, cartOutline, alertCircleOutline, personAddOutline })
     IonIcon,
     IonLabel,
     CommonModule,
+     IonButtons,   
+    IonButton,  
     RouterModule
   ]
 })
-export class PanelAdminPage {}
+export class PanelAdminPage {
+  constructor(private location: Location) {}
+
+  goBack() {
+    this.location.back();
+  }
+}

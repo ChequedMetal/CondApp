@@ -61,42 +61,67 @@
     </ion-content>
   </ion-tab>
 
-  <!-- TAB MERCADO -->
-  <ion-tab tab="mercado">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Mercado</ion-title>
-      </ion-toolbar>
-    </ion-header>
+ <ion-tab tab="mercado">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Mercado</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-    <ion-content class="ion-padding">
-      <ion-list lines="none">
-        <ion-card *ngFor="let item of productos">
-          <ion-card-header>
-            <ion-item lines="none">
-              <ion-avatar slot="start">
-                <ion-img [src]="item.avatar || 'assets/img/default-avatar.png'"></ion-img>
-              </ion-avatar>
-              <ion-label>
-                <h2>{{ item.autor }}</h2>
-                <p>{{ item.fecha | date:'dd MMM yyyy' }}</p>
-              </ion-label>
-            </ion-item>
-            <ion-card-title>{{ item.titulo }}</ion-card-title>
-          </ion-card-header>
+  <ion-content class="ion-padding">
 
-          <ion-card-content>
-            <p>{{ item.descripcion }}</p>
-          </ion-card-content>
+    <!-- Botón para crear producto -->
+    <ion-button expand="block" color="primary" routerLink="/crear-producto" class="ion-margin-bottom">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      Publicar Producto
+    </ion-button>
 
+    <ion-list lines="none">
+      <!-- Aquí iniciamos el ngFor -->
+      <ion-card *ngFor="let item of productos">
+        <ion-card-header>
           <ion-item lines="none">
-            <ion-badge slot="end" color="success">{{ item.precio }}</ion-badge>
+            <ion-avatar slot="start">
+              <ion-img [src]="item.imagen"></ion-img>
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ item.autor }}</h2>
+              <p>{{ item.fecha | date:'dd MMM yyyy' }}</p>
+            </ion-label>
           </ion-item>
-        </ion-card>
-      </ion-list>
-    </ion-content>
-  </ion-tab>
+          <ion-card-title>{{ item.nombre }}</ion-card-title>
+        </ion-card-header>
 
+        <ion-card-content>
+          <p>{{ item.descripcion }}</p>
+        </ion-card-content>
+
+        <ion-item lines="none">
+          <ion-badge color="success" slot="end">{{ item.precio }}</ion-badge>
+          <ion-button
+            *ngIf="item.whatsapp"
+            fill="outline"
+            color="success"
+            slot="end"
+            [href]="generarEnlaceWhatsApp(item)"
+            target="_blank">
+            <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+            WhatsApp
+          </ion-button>
+        </ion-item>
+      </ion-card>
+      <!-- fin del ngFor -->
+
+      <!-- Mensaje si no hay productos -->
+      <div *ngIf="productos.length === 0" class="ion-text-center ion-padding">
+        <ion-icon name="cart-outline" style="font-size: 48px; color: var(--ion-color-medium)"></ion-icon>
+        <h3>No hay productos publicados</h3>
+        <p>¡Publica el primer producto!</p>
+      </div>
+    </ion-list>
+
+  </ion-content>
+</ion-tab>
   <!-- TAB RECLAMOS -->
   <ion-tab tab="reclamos">
     <ion-header>

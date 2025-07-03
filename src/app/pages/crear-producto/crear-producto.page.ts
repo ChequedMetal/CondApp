@@ -1,5 +1,7 @@
+// src/app/pages/crear-producto/crear-producto.page.ts
+
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule }                         from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -7,11 +9,28 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import {
-  IonicModule,
-  NavController,
-  AlertController,
-  ToastController
-} from '@ionic/angular';
+
+  IonHeader,
+  IonToolbar,
+  IonButtons,
+  IonBackButton,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonTextarea,
+  IonButton,
+  IonIcon,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent
+} from '@ionic/angular/standalone';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { Firestore, collection, addDoc, serverTimestamp } from '@angular/fire/firestore';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-crear-producto',
@@ -19,107 +38,98 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IonicModule
+    RouterModule,
+    // Ionic Components usados en template:
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonBackButton,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonTextarea,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonButton,
+    IonIcon
   ],
   templateUrl: './crear-producto.page.html',
-  styleUrls: ['./crear-producto.page.scss'],
+  styleUrls: ['./crear-producto.page.scss']
 })
 export class CrearProductoPage implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
   productoForm: FormGroup;
-  productos: Array<{
-    id: number;
-    nombre: string;
-    descripcion: string;
-    precio: number;
-    fecha: string;
-    autor: string;
-    imagen?: string;
-  }> = [];
   imagenPreview: string | null = null;
+  currentUser: any;
 
   constructor(
     private fb: FormBuilder,
-    private navCtrl: NavController,
-    private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private firestore: Firestore,
+    private auth: AuthService,
+    private router: Router
   ) {
     this.productoForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-      descripcion: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      precio: [null, [Validators.required, Validators.min(0.01)]]
+      nombre:      ['', Validators.required],
+      descripcion: ['', Validators.required],
+      precio:      [ null, [Validators.required, Validators.min(0)] ]
     });
   }
 
   ngOnInit() {
-    // Carga inicial desde localStorage
-    const saved = JSON.parse(localStorage.getItem('productos') || '[]');
-    this.productos = Array.isArray(saved) ? saved : [];
+    // Recupera solo una vez los datos del usuario logueado
+    this.auth.appUser$.pipe(take(1)).subscribe(u => this.currentUser = u);
   }
 
-  /** Abre el dialogo de selección de archivos */
+  // Abre el selector de archivo
   seleccionarImagen() {
     this.fileInput.nativeElement.click();
   }
 
-  /** Genera vista previa cuando el usuario selecciona una imagen */
+  // Maneja la selección de archivo y genera preview
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (!input.files?.[0]) return;
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagenPreview = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  /** Guarda el nuevo producto en localStorage */
-  async guardar() {
-    if (this.productoForm.invalid) {
-      const alert = await this.alertCtrl.create({
-        header: 'Formulario incompleto',
-        message: 'Por favor completa todos los campos.',
-        buttons: ['OK']
-      });
-      await alert.present();
-      return;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagenPreview = reader.result as string;
+      };
+      reader.readAsDataURL(file);
     }
-
-    const { nombre, descripcion, precio } = this.productoForm.value;
-    const nuevo = {
-      id: this.productos.length
-        ? Math.max(...this.productos.map(p => p.id)) + 1
-        : 1,
-      nombre,
-      descripcion,
-      precio: Number(precio),
-      fecha: new Date().toISOString(),
-      autor: 'Vecino',              // FUTURO: reemplazar por usuario real desde AuthService
-      imagen: this.imagenPreview ?? undefined  // convierte null a undefined si no hay imagen
-    };
-
-    // === TEMPORAL: guardado en localStorage ===
-    this.productos.push(nuevo);
-    localStorage.setItem('productos', JSON.stringify(this.productos));
-
-    const toast = await this.toastCtrl.create({
-      message: 'Producto publicado correctamente',
-      duration: 2000
-    });
-    await toast.present();
-
-    // limpiar formulario e imagen
-    this.productoForm.reset();
-    this.imagenPreview = null;
-
-    // === FUTURO: integración con Firebase ===
-    // this.firestoreService.add('productos', nuevo).then(...)
   }
 
-  /** Cancela y regresa a Home */
+  // Guarda el producto en Firestore
+async guardar() {
+  if (this.productoForm.invalid) return;
+
+  const { nombre, descripcion, precio } = this.productoForm.value;
+  const nuevoProducto = {
+    nombre,
+    descripcion,
+    precio,
+    imagen: this.imagenPreview || '',
+    fecha: serverTimestamp(),              // ← timestamp de servidor
+    usuario: this.currentUser?.nombre,     // ← nombre real del usuario
+    whatsapp: this.currentUser?.whatsapp   // ← número real de WhatsApp
+  };
+
+  console.log('Guardando en Firestore:', nuevoProducto);  // DEBUG
+
+  try {
+    const productosRef = collection(this.firestore, 'productos');
+    await addDoc(productosRef, nuevoProducto);
+    this.router.navigate(['/home'], { queryParams: { tab: 'mercado' } });
+  } catch (err) {
+    console.error('Error guardando producto:', err);
+  }
+}
+
   cancelar() {
-    this.navCtrl.back();
+    this.router.navigate(['/home']);
   }
 }
