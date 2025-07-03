@@ -1,4 +1,5 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, OnDestroy } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -32,7 +33,6 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { AnunciosService } from '../services/anuncios.service';
-import { finalize } from 'rxjs/operators';
 import {
   megaphoneOutline,
   cartOutline,
@@ -73,30 +73,14 @@ interface Anuncio {
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, OnDestroy {
   userRole: 'admin' | 'usuario' = 'usuario';
   showToast = false;
   toastMessage = '';
   toastColor = 'success';
 
-  anuncios = [
-    {
-      titulo: 'Corte de agua programado',
-      descripcion: 'El día lunes 1 de julio habrá un corte de agua desde las 09:00 hasta las 13:00.',
-      fecha: new Date(),
-      autor: 'Admin Condominio',
-      avatar: '', // Sin imagen: se usa avatar por defecto
-      categoria: 'Mantenimiento'
-    },
-    {
-      titulo: 'Reunión de vecinos',
-      descripcion: 'La próxima reunión será el viernes a las 19:00 en el salón de eventos.',
-      fecha: new Date(),
-      autor: 'Directiva',
-      avatar: '',
-      categoria: 'Comunidad'
-    }
-  ];
+  // Arreglo para almacenar los anuncios dinámicos
+  anuncios: Anuncio[] = [];
 
   productos = [
     {
@@ -139,6 +123,9 @@ export class HomePage implements OnInit {
   // Variables para manejar el estado de carga
   cargandoAnuncios = true;
   errorAnuncios: string | null = null;
+  
+  // Para manejar suscripciones
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -162,13 +149,23 @@ export class HomePage implements OnInit {
       addOutline
     });
     
+    // Suscribirse a las notificaciones de nuevos anuncios
+    this.anunciosService.anuncioAgregado$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      console.log('🔄 Se detectó un nuevo anuncio, recargando...');
+      this.cargarAnuncios();
+    });
+    
     // Suscribirse a los cambios del usuario
-    const userSub = this.authService.appUser$.subscribe({
-      next: (user) => {
+    this.authService.appUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (user: any) => {
         console.log('Usuario actualizado:', user);
         if (user) {
           // Usar el campo 'role' del usuario
-          this.userRole = user.role || 'usuario';
+          this.userRole = (user as any).role || 'usuario';
           console.log('Rol del usuario actualizado a:', this.userRole);
           
           // Cargar anuncios después de tener el usuario
@@ -306,9 +303,13 @@ export class HomePage implements OnInit {
     this.router.navigate(['/perfil-usuario']);
   }
   
-  // Limpiar suscripciones al destruir el componente
-  ngOnDestroy() {
-    // La suscripción se limpiará automáticamente gracias a async pipe
+  /**
+   * Limpia todas las suscripciones cuando el componente se destruye
+   */
+  ngOnDestroy(): void {
+    console.log('🔴 Destruyendo componente HomePage');
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

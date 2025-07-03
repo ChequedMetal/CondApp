@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from, of } from 'rxjs';
+import { BehaviorSubject, Observable, from, of, Subject } from 'rxjs';
 import { 
   collection, 
   addDoc, 
@@ -37,6 +37,10 @@ export class AnunciosService {
   private anunciosSubject = new BehaviorSubject<Anuncio[]>([]);
   public anuncios$ = this.anunciosSubject.asObservable();
   private readonly COLLECTION_NAME = 'anuncios';
+  
+  // Subject para notificar sobre nuevos anuncios
+  private anuncioAgregado = new Subject<void>();
+  public anuncioAgregado$ = this.anuncioAgregado.asObservable();
 
   constructor(private firestore: Firestore) { 
     this.cargarAnuncios();
@@ -121,6 +125,13 @@ export class AnunciosService {
       
       const docRef = await addDoc(anuncioRef, nuevoAnuncio);
       console.log('Anuncio agregado con ID: ', docRef.id);
+      
+      // Notificar que se agregó un nuevo anuncio
+      this.anuncioAgregado.next();
+      
+      // Forzar recarga de anuncios
+      this.cargarAnuncios();
+      
       return docRef.id;
     } catch (error) {
       console.error('Error al agregar anuncio:', error);
