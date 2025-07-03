@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onCancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Nuevo Anuncio</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onSubmit()" [disabled]="anuncioForm.invalid">
+        <ion-icon name="send"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="anuncioForm" (ngSubmit)="onSubmit()">
+    <ion-item>
+      <ion-label position="floating">Título</ion-label>
+      <ion-input formControlName="titulo" type="text" required></ion-input>
+    </ion-item>
+    
+    <ion-item>
+      <ion-label position="floating">Descripción</ion-label>
+      <ion-textarea formControlName="descripcion" rows="5" required></ion-textarea>
+    </ion-item>
+    
+    <ion-item>
+      <ion-label>Categoría</ion-label>
+      <ion-select formControlName="categoria">
+        <ion-select-option value="general">General</ion-select-option>
+        <ion-select-option value="mantenimiento">Mantenimiento</ion-select-option>
+        <ion-select-option value="seguridad">Seguridad</ion-select-option>
+        <ion-select-option value="eventos">Eventos</ion-select-option>
+        <ion-select-option value="otro">Otro</ion-select-option>
+      </ion-select>
+    </ion-item>
+    
+    <ion-button 
+      expand="block" 
+      type="submit" 
+      [disabled]="anuncioForm.invalid"
+      class="ion-margin-top">
+      Publicar Anuncio
+    </ion-button>
+  </form>
+</ion-content>

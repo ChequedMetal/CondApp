@@ -8,26 +8,56 @@
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-list lines="none">
+      <!-- Estado de carga -->
+      <div *ngIf="cargandoAnuncios" class="ion-text-center ion-padding">
+        <ion-spinner color="primary"></ion-spinner>
+        <p>Cargando anuncios...</p>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div *ngIf="errorAnuncios" class="ion-text-center ion-padding">
+        <ion-text color="danger">
+          <p>{{ errorAnuncios }}</p>
+          <ion-button (click)="cargarAnuncios()" fill="clear">
+            <ion-icon slot="start" name="refresh"></ion-icon>
+            Reintentar
+          </ion-button>
+        </ion-text>
+      </div>
+
+      <!-- Lista de anuncios -->
+      <ion-list lines="none" *ngIf="!cargandoAnuncios && !errorAnuncios">
         <ion-card *ngFor="let anuncio of anuncios">
           <ion-card-header>
             <ion-item lines="none">
               <ion-avatar slot="start">
-                <ion-img [src]="anuncio.avatar || 'assets/img/default-avatar.png'"></ion-img>
+                <ion-img [src]="anuncio.avatar || 'assets/img/default-avatar.png'" alt="Avatar de {{ anuncio.autor }}"></ion-img>
               </ion-avatar>
               <ion-label>
-                <h2>{{ anuncio.autor }}</h2>
-                <p>{{ anuncio.fecha | date:'dd MMM yyyy' }}</p>
+                <h2>{{ anuncio.autor || 'Anónimo' }}</h2>
+                <p>{{ anuncio.fecha | date:'dd MMM yyyy, HH:mm' }}</p>
               </ion-label>
+              <ion-badge *ngIf="anuncio.categoria" slot="end" color="primary">
+                {{ anuncio.categoria }}
+              </ion-badge>
             </ion-item>
             <ion-card-title>{{ anuncio.titulo }}</ion-card-title>
           </ion-card-header>
 
           <ion-card-content>
-            <p>{{ anuncio.descripcion }}</p>
+            <p class="ion-text-justify">{{ anuncio.descripcion }}</p>
           </ion-card-content>
         </ion-card>
+
+        <!-- Mensaje cuando no hay anuncios -->
+        <div *ngIf="anuncios.length === 0" class="ion-text-center ion-padding">
+          <ion-icon name="megaphone-outline" style="font-size: 48px; color: var(--ion-color-medium);"></ion-icon>
+          <h3>No hay anuncios disponibles</h3>
+          <p>¡Sé el primero en publicar un anuncio!</p>
+        </div>
       </ion-list>
+
+
     </ion-content>
   </ion-tab>
 

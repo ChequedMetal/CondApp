@@ -156,6 +156,17 @@ export class AuthService {
   }
 
   /**
+   * Obtener el usuario actual
+   */
+  getCurrentUser() {
+    const user = this.auth.currentUser;
+    if (!user) return null;
+    
+    // Devolver el usuario de Firebase directamente
+    return user;
+  }
+
+  /**
    * Cambia la contraseña del usuario actual
    * @param contrasenaActual Contraseña actual del usuario
    * @param nuevaContrasena Nueva contraseña

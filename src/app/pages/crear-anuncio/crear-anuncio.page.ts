@@ -7,89 +7,131 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import {
-  IonicModule,
-  NavController,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButton,
+  IonInput,
+  IonTextarea,
+  IonItem,
+  IonLabel,
+  IonSelect,
+  IonSelectOption,
+  IonBackButton,
+  IonButtons,
+  ToastController,
   AlertController,
-  ToastController
-} from '@ionic/angular';
+  NavController
+} from '@ionic/angular/standalone';
+import { AnunciosService } from '../../services/anuncios.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-crear-anuncio',
+  templateUrl: './crear-anuncio.page.html',
+  styleUrls: ['./crear-anuncio.page.scss'],
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IonicModule
-  ],
-  templateUrl: './crear-anuncio.page.html',
-  styleUrls: ['./crear-anuncio.page.scss'],
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButton,
+    IonInput,
+    IonTextarea,
+    IonItem,
+    IonLabel,
+    IonBackButton,
+    IonButtons
+  ]
 })
 export class CrearAnuncioPage implements OnInit {
   anuncioForm: FormGroup;
-  anuncios: Array<{
-    id: number;
-    titulo: string;
-    mensaje: string;
-    fecha: string;
-    autor: string;
-  }> = [];
+  cargando = false;
+  error: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private navCtrl: NavController,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private anunciosService: AnunciosService,
+    private authService: AuthService
   ) {
     this.anuncioForm = this.fb.group({
-      titulo: ['', Validators.required],
-      mensaje: ['', Validators.required]
+      titulo: ['', [Validators.required, Validators.minLength(5)]],
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      categoria: ['general', [Validators.required]]
     });
   }
 
-  ngOnInit() {
-    // Carga inicial desde localStorage (o array vacío)
-    const saved = JSON.parse(localStorage.getItem('anuncios') || '[]');
-    this.anuncios = saved;
-  }
+  ngOnInit() {}
 
   async publicar() {
     if (this.anuncioForm.invalid) {
-      const alert = await this.alertCtrl.create({
-        header: 'Formulario incompleto',
-        message: 'Por favor completa título y mensaje',
-        buttons: ['OK']
-      });
-      return alert.present();
+      this.mostrarAlerta('Formulario incompleto', 'Por favor completa todos los campos requeridos');
+      return;
     }
 
-    const { titulo, mensaje } = this.anuncioForm.value;
-    const nuevoAnuncio = {
-      id: this.anuncios.length
-        ? Math.max(...this.anuncios.map(a => a.id)) + 1
-        : 1,
-      titulo,
-      mensaje,
-      fecha: new Date().toISOString(),
-      autor: 'Usuario'  // FUTURO: reemplazar por autor real desde AuthService
-    };
+    this.cargando = true;
+    this.error = null;
 
-    // Guardar en localStorage
-    this.anuncios.push(nuevoAnuncio);
-    localStorage.setItem('anuncios', JSON.stringify(this.anuncios));
+    try {
+      const { titulo, descripcion, categoria } = this.anuncioForm.value;
+      const usuarioActual = this.authService.getCurrentUser();
+      
+      if (!usuarioActual) {
+        throw new Error('No se pudo obtener la información del usuario. Por favor, inicia sesión nuevamente.');
+      }
+      
+      const nuevoAnuncio = {
+        titulo,
+        descripcion,
+        categoria: categoria || 'general',
+        autor: usuarioActual.displayName || 'Administrador',
+        avatar: usuarioActual.photoURL || ''
+      };
 
-    // Mensaje de éxito
-    const toast = await this.toastCtrl.create({
-      message: 'Anuncio publicado correctamente',
-      duration: 2000
+      // Guardar en Firestore
+      await this.anunciosService.agregarAnuncio(nuevoAnuncio);
+      
+      // Mostrar mensaje de éxito
+      const toast = await this.toastCtrl.create({
+        message: 'Anuncio publicado correctamente',
+        duration: 2000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+
+      // Limpiar formulario
+      this.anuncioForm.reset({ categoria: 'general' });
+      
+      // Redirigir al home después de 1 segundo
+      setTimeout(() => {
+        this.navCtrl.navigateRoot('/home');
+      }, 1000);
+      
+    } catch (error: unknown) {
+      console.error('Error al publicar anuncio:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error al publicar el anuncio';
+      this.error = errorMessage;
+      this.mostrarAlerta('Error', errorMessage);
+    } finally {
+      this.cargando = false;
+    }
+  }
+
+  async mostrarAlerta(titulo: string, mensaje: string) {
+    const alert = await this.alertCtrl.create({
+      header: titulo,
+      message: mensaje,
+      buttons: ['OK']
     });
-    await toast.present();
-
-    this.anuncioForm.reset();
-
-    // FUTURO: aquí iría la llamada a tu servicio de Firebase
-    // this.anunciosService.crearAnuncio(nuevoAnuncio)
-    //   .then(() => this.navCtrl.navigateRoot('/home'))
-    //   .catch(err => console.error('Error Firebase:', err));
+    await alert.present();
   }
 
   cancelar() {
