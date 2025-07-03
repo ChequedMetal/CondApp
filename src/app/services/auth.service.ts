@@ -1,80 +1,63 @@
 // src/app/services/auth.service.ts
+
 import { Injectable } from '@angular/core';
-import { 
-  Auth, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  User as FirebaseUser,
+import {
+  Auth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
   UserCredential,
-  AuthError,
-  authState
+  authState,
+  User as FirebaseUser
 } from '@angular/fire/auth';
-import { 
-  Firestore, 
-  doc, 
-  docData, 
+import {
+  Firestore,
+  doc,
+  setDoc,
+  docData,
   DocumentReference,
   DocumentData
 } from '@angular/fire/firestore';
-import { 
-  Observable, 
-  from, 
-  of, 
-  throwError 
-} from 'rxjs';
-import { 
-  catchError, 
-  map, 
-  switchMap, 
-  take 
-} from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { switchMap, map, catchError, take } from 'rxjs/operators';
 
 export interface AppUser {
   uid: string;
   email: string;
   nombre: string;
   role: 'admin' | 'usuario';
+  rut?: string;
+  celular?: string;
+  casa?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  // Observable del estado de autenticación de Firebase
+  // Observable de estado de autenticación
   authState$ = authState(this.auth);
-  
-  // Información del usuario autenticado con datos extendidos de Firestore
+
+  // Observable del perfil extendido en Firestore
   appUser$: Observable<AppUser | null> = this.authState$.pipe(
     switchMap((user: FirebaseUser | null) => {
-      console.log('AuthState cambió, usuario:', user?.email);
-      if (!user) {
-        console.log('No hay usuario autenticado');
-        return of(null);
-      }
-      
-      const userDoc = doc(this.firestore, `users/${user.uid}`) as DocumentReference<DocumentData>;
-      console.log('Obteniendo datos de usuario de Firestore...');
-      
-      return docData(userDoc, { idField: 'uid' }).pipe(
-        map((userData: any) => {
-          console.log('Datos del usuario desde Firestore:', userData);
-          
-          if (!userData) {
-            console.error('No se encontraron los datos del usuario en Firestore');
-            throw new Error('No se encontraron los datos del usuario');
-          }
-          
-          const userWithRole = {
+      if (!user) return of(null);
+      const userRef = doc(this.firestore, `users/${user.uid}`) as DocumentReference<DocumentData>;
+      return docData(userRef).pipe(
+        take(1),
+        map((data: any) => {
+          if (!data || !data.role) return null;
+          return {
             uid: user.uid,
             email: user.email || '',
-            nombre: userData.nombre || 'Usuario',
-            role: userData.role || 'usuario'
+            nombre: data.nombre,
+            role: data.role,
+            rut: data.rut,
+            celular: data.celular,
+            casa: data.casa
           } as AppUser;
-          
-          console.log('Usuario procesado con role:', userWithRole.role);
-          return userWithRole;
         }),
-        catchError(error => {
-          console.error('Error al obtener datos del usuario:', error);
-          return throwError(() => new Error('Error al cargar los datos del usuario'));
+        catchError(err => {
+          console.error('Error al cargar perfil Firestore', err);
+          return of(null);
         })
       );
     })
@@ -85,76 +68,87 @@ export class AuthService {
     private firestore: Firestore
   ) {}
 
-  /**
-   * Inicia sesión con email y contraseña
-   * @param email Correo electrónico del usuario
-   * @param password Contraseña del usuario
-   * @returns Promesa con el resultado del inicio de sesión
-   */
-  async login(email: string, password: string): Promise<UserCredential> {
+  /** Registra un nuevo usuario y crea su perfil en Firestore */
+  async registrarUsuario(data: {
+    correo: string;
+    password: string;
+    nombre: string;
+    role?: 'admin' | 'usuario';
+    rut: string;
+    celular: string;
+    casa: string;
+  }): Promise<void> {
+    const { correo, password, nombre, role = 'usuario', rut, celular, casa } = data;
+    
+    // 1) Guardar el usuario actual
+    const currentUser = this.auth.currentUser;
+    
     try {
-      if (!email || !password) {
-        throw new Error('El correo y la contraseña son requeridos');
+      // 2) Cerrar la sesión actual temporalmente
+      if (currentUser) {
+        await signOut(this.auth);
       }
       
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      // 3) Crear la nueva cuenta
+      const cred = await createUserWithEmailAndPassword(this.auth, correo, password);
       
-      if (!userCredential.user.emailVerified) {
-        // Opcional: requerir verificación de email
-        // await sendEmailVerification(userCredential.user);
-        // throw new Error('Por favor verifica tu correo electrónico');
-      }
+      // 4) Crear el documento de perfil
+      const userRef = doc(this.firestore, `users/${cred.user.uid}`);
+      await setDoc(userRef, {
+        nombre,
+        role,
+        rut,
+        celular,
+        casa,
+        email: correo // Asegurarnos de guardar el correo también
+      });
       
-      return userCredential;
-    } catch (error: any) {
-      console.error('Error en login:', error);
-      
-      // Mapear errores comunes de Firebase a mensajes más amigables
-      let errorMessage = 'Error al iniciar sesión';
-      
-      switch (error.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-          errorMessage = 'Correo o contraseña incorrectos';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Demasiados intentos. Intenta más tarde';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'Esta cuenta ha sido deshabilitada';
-          break;
-      }
-      
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
-   * Cierra la sesión del usuario actual
-   * @returns Promesa que se resuelve cuando se cierra la sesión
-   */
-  async logout(): Promise<void> {
-    try {
+      // 5) Cerrar sesión del nuevo usuario
       await signOut(this.auth);
+      
+      // 6) Volver a iniciar sesión con el usuario original si existía
+      if (currentUser && currentUser.email) {
+        const token = await currentUser.getIdToken();
+        await signInWithEmailAndPassword(this.auth, currentUser.email, token);
+      }
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      throw new Error('Error al cerrar sesión');
+      // Si hay un error, intentar restaurar la sesión original
+      if (currentUser && currentUser.email) {
+        await signInWithEmailAndPassword(this.auth, currentUser.email, await currentUser.getIdToken());
+      }
+      throw error;
     }
   }
 
-  /**
-   * Obtiene el token de autenticación actual
-   * @returns Promesa con el token de autenticación o null si no hay usuario autenticado
-   */
+  /** Login con email/contraseña */
+  async login(email: string, password: string): Promise<UserCredential> {
+    if (!email || !password) {
+      throw new Error('El correo y la contraseña son requeridos');
+    }
+    try {
+      return await signInWithEmailAndPassword(this.auth, email, password);
+    } catch (error: any) {
+      let msg = 'Error al iniciar sesión';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        msg = 'Correo o contraseña incorrectos';
+      } else if (error.code === 'auth/too-many-requests') {
+        msg = 'Demasiados intentos. Intenta más tarde';
+      } else if (error.code === 'auth/user-disabled') {
+        msg = 'Esta cuenta ha sido deshabilitada';
+      }
+      throw new Error(msg);
+    }
+  }
+
+  /** Logout */
+  async logout(): Promise<void> {
+    await signOut(this.auth);
+  }
+
+  /** Obtiene token actual */
   async getAuthToken(): Promise<string | null> {
     const user = this.auth.currentUser;
     if (!user) return null;
-    
-    try {
-      return await user.getIdToken();
-    } catch (error) {
-      console.error('Error al obtener el token:', error);
-      return null;
-    }
+    return await user.getIdToken();
   }
 }

@@ -1,5 +1,8 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
     <ion-title>Crear Usuarios</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -31,13 +34,6 @@
       <ion-input formControlName="correo" type="email" placeholder="usuario@ejemplo.com"></ion-input>
     </ion-item>
 
-    <ion-item>
-      <ion-label position="stacked">Rol</ion-label>
-      <ion-select formControlName="rol">
-        <ion-select-option value="user">Usuario</ion-select-option>
-        <ion-select-option value="admin">Administrador</ion-select-option>
-      </ion-select>
-    </ion-item>
 
     <ion-button expand="block" type="submit" [disabled]="usuarioForm.invalid">
       Crear Usuario
