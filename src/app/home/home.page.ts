@@ -172,7 +172,11 @@ export class HomePage implements OnInit {
   }
 
   goToPanelAdmin() {
-    this.router.navigate(['/panel-admin']);
+    this.router.navigate(['/panel']);
+  }
+  
+  goToPerfilUsuario() {
+    this.router.navigate(['/perfil-usuario']);
   }
   
   // Limpiar suscripciones al destruir el componente

@@ -16,6 +16,7 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage)
   },
+  // Rutas de administración
   {
     path: 'gestionar-reclamos',
     loadComponent: () => import('./pages/gestionar-reclamos/gestionar-reclamos.page').then( m => m.GestionarReclamosPage),
@@ -29,7 +30,7 @@ export const routes: Routes = [
     data: { roles: ['admin'] }
   },
   {
-    path: 'panel-admin',
+    path: 'panel',
     loadComponent: () => import('./pages/panel-admin/panel-admin.page').then( m => m.PanelAdminPage),
     canActivate: [authGuard],
     data: { roles: ['admin'] }
@@ -52,5 +53,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { roles: ['admin', 'usuario'] }
   },
+  {
+    path: 'perfil-usuario',
+    loadComponent: () => import('./pages/perfil-usuario/perfil-usuario.page').then( m => m.PerfilUsuarioPage),
+    canActivate: [authGuard],
+    data: { roles: ['admin', 'usuario'] }
+  },
+  
 ];
-

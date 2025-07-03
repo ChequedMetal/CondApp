@@ -35,9 +35,6 @@ import { AuthService, AppUser } from '../../services/auth.service';
   standalone: true,
   imports: [
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     IonButton,
     IonInput,
     IonItem,
@@ -46,7 +43,6 @@ import { AuthService, AppUser } from '../../services/auth.service';
     IonCardContent,
     IonCardHeader,
     IonCardTitle,
-    IonToast,
     IonIcon,
     IonSpinner,
     IonNote,

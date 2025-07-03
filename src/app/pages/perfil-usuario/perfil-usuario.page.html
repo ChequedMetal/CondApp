@@ -1,0 +1,218 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mi Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" style="font-size: 48px; color: var(--ion-color-danger)"></ion-icon>
+    <h3>Error</h3>
+    <p>{{ error }}</p>
+    <ion-button (click)="cargarPerfil()" fill="clear">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Reintentar
+    </ion-button>
+  </div>
+
+  <!-- Perfil del usuario -->
+  <div *ngIf="!cargando && usuario" class="profile-container">
+    <div class="ion-text-center ion-padding">
+      <ion-avatar class="profile-avatar">
+        <img [src]="usuario.photoURL || 'assets/icon/avatar.svg'" alt="Foto de perfil" />
+      </ion-avatar>
+      <h2>{{ usuario.nombre || 'Usuario' }}</h2>
+      <ion-chip [color]="usuario.role === 'admin' ? 'danger' : 'primary'" outline>
+        {{ usuario.role === 'admin' ? 'Administrador' : 'Usuario' }}
+      </ion-chip>
+    </div>
+
+    <ion-list>
+      <ion-item>
+        <ion-icon name="mail-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Correo electrónico</h3>
+          <p>{{ usuario.email || 'No especificado' }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item>
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>RUT</h3>
+          <p>{{ usuario.rut || 'No especificado' }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item>
+        <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Teléfono</h3>
+          <p>{{ usuario.celular || 'No especificado' }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item>
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Dirección</h3>
+          <p>{{ usuario.casa ? 'Casa ' + usuario.casa : 'No especificada' }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <div class="ion-padding">
+      <ion-button expand="block" (click)="abrirModalCambioContrasena()" class="ion-margin-bottom" fill="outline">
+        <ion-icon name="key-outline" slot="start"></ion-icon>
+        Cambiar Contraseña
+      </ion-button>
+      
+      <ion-button expand="block" (click)="cerrarSesion()" class="ion-margin-top" color="danger">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Cerrar Sesión
+      </ion-button>
+    </div>
+    
+    <!-- Modal para cambiar contraseña -->
+    <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()" [backdropDismiss]="!cambiandoContrasena">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Cambiar Contraseña</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModal()" [disabled]="cambiandoContrasena">
+                <ion-icon name="close-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <form [formGroup]="cambioContrasenaForm" (ngSubmit)="cambiarContrasena()">
+            <!-- Contraseña Actual -->
+            <ion-item lines="full" class="ion-margin-bottom" [class.ion-invalid]="cambioContrasenaForm.get('contrasenaActual')?.invalid && cambioContrasenaForm.get('contrasenaActual')?.touched">
+              <ion-label position="floating">Contraseña Actual</ion-label>
+              <ion-input 
+                type="password" 
+                formControlName="contrasenaActual" 
+                required
+                [clearOnEdit]="false"
+                (ionInput)="errorCambioContrasena = null"
+              ></ion-input>
+              <ion-note slot="helper" color="danger" *ngIf="cambioContrasenaForm.get('contrasenaActual')?.touched && cambioContrasenaForm.get('contrasenaActual')?.errors?.['required']">
+                La contraseña actual es requerida
+              </ion-note>
+            </ion-item>
+            
+            <!-- Nueva Contraseña -->
+            <ion-item lines="full" class="ion-margin-bottom" [class.ion-invalid]="cambioContrasenaForm.get('nuevaContrasena')?.invalid && cambioContrasenaForm.get('nuevaContrasena')?.touched">
+              <ion-label position="floating">Nueva Contraseña</ion-label>
+              <ion-input 
+                type="password" 
+                formControlName="nuevaContrasena" 
+                required
+                minlength="6"
+                [clearOnEdit]="false"
+                (ionInput)="errorCambioContrasena = null"
+              ></ion-input>
+              <ion-note slot="helper" color="danger" *ngIf="cambioContrasenaForm.get('nuevaContrasena')?.touched && cambioContrasenaForm.get('nuevaContrasena')?.errors?.['required']">
+                La nueva contraseña es requerida
+              </ion-note>
+              <ion-note slot="helper" color="danger" *ngIf="cambioContrasenaForm.get('nuevaContrasena')?.touched && cambioContrasenaForm.get('nuevaContrasena')?.errors?.['minlength']">
+                Mínimo 6 caracteres
+              </ion-note>
+              <ion-note slot="helper" *ngIf="cambioContrasenaForm.get('nuevaContrasena')?.valid">
+                <ion-icon name="checkmark-circle" color="success"></ion-icon> Formato válido
+              </ion-note>
+            </ion-item>
+            
+            <!-- Confirmar Nueva Contraseña -->
+            <ion-item lines="full" class="ion-margin-bottom" [class.ion-invalid]="cambioContrasenaForm.get('confirmarContrasena')?.touched && cambioContrasenaForm.hasError('noCoinciden')">
+              <ion-label position="floating">Confirmar Nueva Contraseña</ion-label>
+              <ion-input 
+                type="password" 
+                formControlName="confirmarContrasena" 
+                required
+                [clearOnEdit]="false"
+                (ionInput)="errorCambioContrasena = null"
+              ></ion-input>
+              <ion-note slot="helper" color="danger" *ngIf="cambioContrasenaForm.get('confirmarContrasena')?.touched && cambioContrasenaForm.hasError('noCoinciden')">
+                Las contraseñas no coinciden
+              </ion-note>
+              <ion-note slot="helper" *ngIf="cambioContrasenaForm.get('confirmarContrasena')?.valid && !cambioContrasenaForm.hasError('noCoinciden')">
+                <ion-icon name="checkmark-circle" color="success"></ion-icon> Las contraseñas coinciden
+              </ion-note>
+            </ion-item>
+            
+            <!-- Mensaje de error general -->
+            <div *ngIf="errorCambioContrasena" class="ion-margin-vertical">
+              <ion-note color="danger">
+                <ion-icon name="alert-circle" class="ion-align-self-start"></ion-icon>
+                {{ errorCambioContrasena }}
+              </ion-note>
+            </div>
+            
+            <!-- Mensaje de éxito -->
+            <div *ngIf="cambioExitoso" class="ion-margin-vertical">
+              <ion-note color="success">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Contraseña cambiada exitosamente. Cerrando...
+              </ion-note>
+            </div>
+            
+            <!-- Botones de acción -->
+            <ion-grid class="ion-margin-top">
+              <ion-row class="ion-justify-content-between">
+                <ion-col size="12" size-md="5">
+                  <ion-button 
+                    expand="block" 
+                    fill="outline" 
+                    (click)="cerrarModal()" 
+                    [disabled]="cambiandoContrasena"
+                    class="ion-margin-bottom"
+                  >
+                    <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                    Cancelar
+                  </ion-button>
+                </ion-col>
+                <ion-col size="12" size-md="5" class="ion-float-end">
+                  <ion-button 
+                    expand="block" 
+                    type="submit" 
+                    [disabled]="cambioContrasenaForm.invalid || cambiandoContrasena"
+                    [class.ion-activatable]="!cambiandoContrasena"
+                    class="ion-margin-bottom"
+                  >
+                    <ion-ripple-effect *ngIf="!cambiandoContrasena"></ion-ripple-effect>
+                    <ion-spinner *ngIf="cambiandoContrasena" name="crescent" class="ion-margin-end"></ion-spinner>
+                    <ion-icon *ngIf="!cambiandoContrasena" name="save-outline" slot="start"></ion-icon>
+                    {{ cambiandoContrasena ? 'Procesando...' : 'Guardar Cambios' }}
+                  </ion-button>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </div>
+
+  <!-- Sin usuario -->
+  <div *ngIf="!cargando && !usuario && !error" class="ion-text-center ion-padding">
+    <ion-icon name="person-circle-outline" style="font-size: 48px;"></ion-icon>
+    <h3>No hay información de perfil</h3>
+    <p>Inicia sesión para ver tu perfil</p>
+    <ion-button routerLink="/login" class="ion-margin-top">
+      Iniciar Sesión
+    </ion-button>
+  </div>
+</ion-content>

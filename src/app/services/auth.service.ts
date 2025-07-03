@@ -8,7 +8,10 @@ import {
   signOut,
   UserCredential,
   authState,
-  User as FirebaseUser
+  User as FirebaseUser,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from '@angular/fire/auth';
 import {
   Firestore,
@@ -150,5 +153,98 @@ export class AuthService {
     const user = this.auth.currentUser;
     if (!user) return null;
     return await user.getIdToken();
+  }
+
+  /**
+   * Cambia la contraseña del usuario actual
+   * @param contrasenaActual Contraseña actual del usuario
+   * @param nuevaContrasena Nueva contraseña
+   * @throws {Error} Con mensaje descriptivo del error
+   */
+  async cambiarContrasena(contrasenaActual: string, nuevaContrasena: string): Promise<void> {
+    console.log('Iniciando cambio de contraseña...');
+    const user = this.auth.currentUser;
+    
+    // Validar que el usuario esté autenticado
+    if (!user) {
+      console.error('Error: No hay usuario autenticado');
+      throw new Error('No hay un usuario autenticado. Por favor, inicia sesión nuevamente.');
+    }
+    
+    if (!user.email) {
+      console.error('Error: No se pudo obtener el correo del usuario');
+      throw new Error('No se pudo obtener el correo del usuario.');
+    }
+
+    console.log('Usuario autenticado:', user.email);
+
+    try {
+      console.log('Intentando reautenticar al usuario...');
+      // 1. Reautenticar al usuario
+      const credential = EmailAuthProvider.credential(user.email, contrasenaActual);
+      
+      try {
+        await reauthenticateWithCredential(user, credential);
+        console.log('Reautenticación exitosa');
+      } catch (reauthError: any) {
+        console.error('Error en reautenticación:', reauthError);
+        throw reauthError; // Relanzar para que sea manejado por el catch externo
+      }
+
+      // 2. Validar que la nueva contraseña sea diferente
+      if (contrasenaActual === nuevaContrasena) {
+        console.error('Error: La nueva contraseña es igual a la actual');
+        throw new Error('La nueva contraseña debe ser diferente a la actual.');
+      }
+
+      console.log('Intentando actualizar la contraseña...');
+      // 3. Cambiar la contraseña
+      try {
+        await updatePassword(user, nuevaContrasena);
+        console.log('Contraseña actualizada exitosamente');
+      } catch (updateError: any) {
+        console.error('Error al actualizar contraseña:', updateError);
+        throw updateError; // Relanzar para que sea manejado por el catch externo
+      }
+      
+    } catch (error: any) {
+      console.error('Error detallado al cambiar la contraseña:', {
+        code: error.code,
+        message: error.message,
+        error: error
+      });
+      
+      // Mapear errores de Firebase a mensajes amigables
+      if (error.code) {
+        console.log('Código de error de Firebase:', error.code);
+        
+        switch (error.code) {
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            throw new Error('La contraseña actual es incorrecta. Por favor, verifica e inténtalo de nuevo.');
+            
+          case 'auth/weak-password':
+            throw new Error('La nueva contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+            
+          case 'auth/requires-recent-login':
+            throw new Error('La sesión ha expirado. Por favor, inicia sesión nuevamente antes de cambiar tu contraseña.');
+            
+          case 'auth/too-many-requests':
+            throw new Error('Demasiados intentos fallidos. Por favor, inténtalo de nuevo más tarde.');
+            
+          case 'auth/user-token-expired':
+          case 'auth/user-disabled':
+          case 'auth/user-not-found':
+            throw new Error('Tu sesión ha expirado o ha sido deshabilitada. Por favor, inicia sesión nuevamente.');
+            
+          default:
+            console.warn('Código de error no manejado:', error.code);
+        }
+      }
+      
+      // Si llegamos aquí, es un error no manejado específicamente
+      console.error('Error no manejado al cambiar contraseña:', error);
+      throw new Error(`Ocurrió un error al cambiar la contraseña: ${error.message || 'Error desconocido'}`);
+    }
   }
 }
