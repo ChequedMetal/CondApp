@@ -1,0 +1,142 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/panel"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestión de Usuarios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Loading State -->
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando usuarios...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!cargando && error" class="ion-text-center ion-padding">
+    <ion-text color="danger">
+      <p>{{ error }}</p>
+    </ion-text>
+    <ion-button (click)="cargarUsuarios()" fill="clear">
+      <ion-icon slot="start" name="refresh"></ion-icon>
+      Reintentar
+    </ion-button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!cargando && !error && usuarios.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="people-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+    <h3>No hay usuarios registrados</h3>
+    <p>No se encontraron usuarios en el sistema.</p>
+  </div>
+
+  <!-- Users List - Versión Simplificada -->
+  <div class="ion-padding">
+    <h2>Usuarios ({{ usuarios.length || 0 }})</h2>
+    
+    <!-- Estado de carga -->
+    <div *ngIf="cargando" class="ion-text-center ion-padding">
+      <ion-spinner></ion-spinner>
+      <p>Cargando usuarios...</p>
+    </div>
+    
+    <!-- Mensaje de error -->
+    <div *ngIf="error" class="ion-text-center ion-padding">
+      <ion-text color="danger">
+        <p>{{ error }}</p>
+      </ion-text>
+      <ion-button (click)="cargarUsuarios()">
+        <ion-icon slot="start" name="refresh"></ion-icon>
+        Reintentar
+      </ion-button>
+    </div>
+    
+    <!-- Lista de usuarios -->
+    <div *ngIf="!cargando && !error">
+      <!-- Debug Info -->
+      <ion-button expand="block" color="light" (click)="mostrarDebug = !mostrarDebug" size="small" class="ion-margin-bottom">
+        <ion-icon slot="start" name="bug"></ion-icon>
+        {{ mostrarDebug ? 'Ocultar' : 'Mostrar' }} datos en bruto
+      </ion-button>
+      
+      <pre *ngIf="mostrarDebug" class="ion-padding" style="background: #f4f4f4; border-radius: 8px; overflow: auto;">
+{{ usuarios | json }}
+      </pre>
+      
+      <!-- Lista de usuarios -->
+      <ion-list>
+        <ion-item *ngFor="let usuario of usuarios">
+          <ion-label>
+            <h2>{{ usuario.nombre || usuario.displayName || 'Sin nombre' }}</h2>
+            <p>{{ usuario.email || 'Sin email' }}</p>
+            <p>Rol: {{ usuario.role || 'user' }}</p>
+            <p *ngIf="usuario.casa">Casa: {{ usuario.casa }}</p>
+            <p *ngIf="usuario.phoneNumber">Tel: {{ usuario.phoneNumber }}</p>
+          </ion-label>
+          
+          <ion-button 
+            *ngIf="usuario.role !== 'admin'" 
+            fill="clear" 
+            color="danger" 
+            (click)="confirmarEliminarUsuario(usuario)"
+            title="Eliminar usuario"
+          >
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+      
+      <div *ngIf="!usuarios || usuarios.length === 0" class="ion-text-center ion-padding">
+        <ion-icon name="people-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+        <h3>No hay usuarios para mostrar</h3>
+        <p>No se encontraron usuarios en el sistema.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast for notifications -->
+  <ion-toast
+    [isOpen]="showToast"
+    [message]="toastMessage"
+    [color]="toastColor"
+    [duration]="3000"
+    (didDismiss)="showToast = false">
+  </ion-toast>
+</ion-content>
+
+<style>
+  .user-item {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --min-height: 80px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background-color: var(--ion-color-light);
+    border-radius: 50%;
+  }
+  
+  ion-badge {
+    margin-top: 5px;
+    margin-right: 5px;
+  }
+  
+  ion-icon[name="trash-outline"] {
+    font-size: 20px;
+  }
+  
+  ion-button[color="danger"] {
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+</style>

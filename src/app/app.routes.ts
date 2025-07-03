@@ -58,6 +58,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/perfil-usuario/perfil-usuario.page').then( m => m.PerfilUsuarioPage),
     canActivate: [authGuard],
     data: { roles: ['admin', 'usuario'] }
+  },  {
+    path: 'gestion-usuarios',
+    loadComponent: () => import('./pages/gestion-usuarios/gestion-usuarios.page').then( m => m.GestionUsuariosPage),
+    canActivate: [authGuard],
+    data: { roles: ['admin'] }
   },
+
   
 ];
