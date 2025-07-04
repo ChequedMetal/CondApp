@@ -22,8 +22,6 @@ import { UsuariosService, Usuario } from '../../services/usuarios.service';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-// Icons will be used directly in the template with their default names
-
 @Component({
   selector: 'app-gestion-usuarios',
   templateUrl: './gestion-usuarios.page.html',
@@ -55,12 +53,11 @@ export class GestionUsuariosPage implements OnInit, OnDestroy {
   error: string | null = null;
   private destroy$ = new Subject<void>();
 
-  // Mensajes de toast
   showToast = false;
   toastMessage = '';
   toastColor = 'success';
 
-  mostrarDebug = false; // Para mostrar/ocultar la información de depuración
+  mostrarDebug = false;
 
   constructor(
     private usuariosService: UsuariosService,

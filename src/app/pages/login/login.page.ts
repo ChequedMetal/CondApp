@@ -1,17 +1,11 @@
-// src/app/login/login.page.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Platform, ToastController } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 
-// Importaciones de componentes de Ionic
 import { 
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonButton,
   IonInput,
   IonItem,

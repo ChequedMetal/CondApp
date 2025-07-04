@@ -1,5 +1,5 @@
 <ion-tabs>
-  <!-- TAB ANUNCIOS -->
+
   <ion-tab tab="anuncios">
     <ion-header>
       <ion-toolbar>
@@ -78,14 +78,14 @@
       </ion-button>
 
       <ion-list lines="none">
-        <!-- Aquí iniciamos el ngFor -->
+
         <ion-list lines="none">
           <ion-card *ngFor="let item of productos">
-            <!-- Header con avatar del AUTOR, no del producto -->
+
             <ion-card-header>
               <ion-item lines="none">
                 <ion-avatar slot="start">
-                  <!-- Usa avatar del autor o default -->
+
                   <ion-img [src]="item.autorAvatar || 'assets/img/default-avatar.png'">
                   </ion-img>
                 </ion-avatar>
@@ -97,7 +97,7 @@
               <ion-card-title>{{ item.nombre }}</ion-card-title>
             </ion-card-header>
 
-            <!-- Aquí insertamos la imagen del PRODUCTO -->
+
             <ion-card-content>
               <img [src]="item.imagen || item.imagenUrl" class="product-image"
                 (click)="openImage(item.imagen || item.imagenUrl)" />
@@ -121,12 +121,12 @@
           </div>
         </ion-list>
 
-        <!-- Overlay para zoom de imagen -->
+
         <div class="image-overlay" *ngIf="modalImage">
           <div class="backdrop" (click)="closeImage()"></div>
           <img [src]="modalImage" class="zoomed-full" />
         </div>
-        <!-- fin del ngFor -->
+
 
         <!-- Mensaje si no hay productos -->
         <div *ngIf="productos.length === 0" class="ion-text-center ion-padding">
@@ -138,7 +138,7 @@
 
     </ion-content>
   </ion-tab>
-  <!-- TAB RECLAMOS -->
+
   <ion-tab tab="reclamos">
     <ion-header>
       <ion-toolbar>
@@ -147,13 +147,13 @@
     </ion-header>
 
     <ion-content class="ion-padding">
-      <!-- 1) Botón para crear reclamo -->
+
       <ion-button expand="block" color="warning" routerLink="/crear-reclamo" class="ion-margin-bottom">
         <ion-icon name="add-outline" slot="start"></ion-icon>
         Publicar Reclamo
       </ion-button>
 
-      <!-- 2) Listado dinámico -->
+
       <ion-list lines="none">
         <ion-card *ngFor="let rec of reclamos">
           <ion-card-header>
@@ -178,7 +178,7 @@
           </ion-card-header>
           <ion-card-content>
             <p>{{ rec.descripcion }}</p>
-            <!-- Botón de eliminar (solo admins, dentro de cada card) -->
+
             <div class="ion-text-right">
               <ion-button
                 *ngIf="userRole === 'admin'"
@@ -205,18 +205,18 @@
     </ion-content>
   </ion-tab>
 
-  <!-- Debug: userRole = {{ userRole }} -->
-  <!-- FAB flotante -->
+
+
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" style="bottom: 60px;">
     <ion-fab-button>
       <ion-icon name="chevron-up-circle"></ion-icon>
     </ion-fab-button>
     <ion-fab-list side="top">
-      <!-- Botón exclusivo para administradores -->
+
       <ion-fab-button *ngIf="userRole === 'admin'" (click)="goToPanelAdmin()" title="Panel de administración">
         <ion-icon name="shield-checkmark-outline"></ion-icon>
       </ion-fab-button>
-      <!-- Botón de configuración general -->
+
       <ion-fab-button (click)="goToPerfilUsuario()" title="Perfil de usuario">
         <ion-icon name="settings-outline"></ion-icon>
       </ion-fab-button>
@@ -230,7 +230,7 @@
     </ion-fab-list>
   </ion-fab>
 
-  <!-- Menú inferior -->
+
   <ion-tab-bar slot="bottom">
     <ion-tab-button tab="anuncios">
       <ion-icon name="megaphone-outline"></ion-icon>
@@ -247,7 +247,7 @@
   </ion-tab-bar>
 </ion-tabs>
 
-<!-- Toast para mensajes -->
+
 <ion-toast [isOpen]="showToast" [message]="toastMessage" [duration]="3000" [color]="toastColor"
   (didDismiss)="showToast = false">
 </ion-toast>

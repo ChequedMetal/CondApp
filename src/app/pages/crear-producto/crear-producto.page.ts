@@ -1,5 +1,3 @@
-// src/app/pages/crear-producto/crear-producto.page.ts
-
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule }                         from '@angular/common';
 import {
@@ -113,9 +111,9 @@ async guardar() {
     descripcion,
     precio,
     imagen: this.imagenPreview || '',
-    fecha: serverTimestamp(),              // ← timestamp de servidor
-    usuario: this.currentUser?.nombre,     // ← nombre real del usuario
-    whatsapp: this.currentUser?.whatsapp   // ← número real de WhatsApp
+    fecha: serverTimestamp(),
+    usuario: this.currentUser?.nombre,
+    whatsapp: this.currentUser?.whatsapp
   };
 
   console.log('Guardando en Firestore:', nuevoProducto);  // DEBUG

@@ -57,13 +57,11 @@ export class CrearReclamoPage implements OnInit {
         if (user) {
           this.currentUser = user;
         } else {
-          // Si no hay usuario, podrías redirigir al login
           this.navCtrl.navigateRoot('/login');
         }
       });
   }
 
-  /** Envía el reclamo a Firestore */
   async enviar() {
     if (this.reclamoForm.invalid) {
       const alert = await this.alertCtrl.create({
@@ -107,7 +105,6 @@ export class CrearReclamoPage implements OnInit {
     }
   }
 
-  /** Cancela y vuelve atrás */
   cancelar() {
     this.navCtrl.back();
   }

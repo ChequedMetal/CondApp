@@ -53,7 +53,6 @@ import {
   collectionData
 } from '@angular/fire/firestore';
 
-// Interfaz para anuncios
 interface Anuncio {
   id?: string;
   titulo: string;
@@ -64,7 +63,6 @@ interface Anuncio {
   categoria: string;
 }
 
-// **Nueva interfaz para reclamos**
 interface Reclamo {
   id?: string;
   titulo: string;
@@ -78,12 +76,10 @@ interface Reclamo {
   selector: 'app-home',
   standalone: true,
   imports: [
-    // Ionic
     IonContent, IonHeader, IonIcon, IonTab, IonTabBar, IonTabButton, IonTabs,
     IonTitle, IonToolbar, IonFab, IonFabButton, IonFabList, IonList, IonCard,
     IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonSpinner,
     IonLabel, IonBadge, IonAvatar, IonImg, IonToast, IonText, IonButton,
-    // Angular
     CommonModule,
     DatePipe,
     RouterModule
@@ -102,7 +98,7 @@ export class HomePage implements OnInit, OnDestroy {
   anuncios: Anuncio[] = [];
   productos: any[] = [];
 
-  // Ahora reclamos está correctamente tipado
+
 reclamos: Reclamo[] = [];
 
 
@@ -210,8 +206,8 @@ reclamos: Reclamo[] = [];
           precio:      d.precio,
           imagen:      d.imagen || d.imagenUrl || 'assets/img/default-avatar.png',
           fecha:       (d.fecha as any)?.toDate?.() ?? new Date(d.fecha),
-          autor:       d.usuario,     // ← usa este campo
-          whatsapp:    d.whatsapp     // ← y este para WhatsApp
+          autor:       d.usuario,     
+          whatsapp:    d.whatsapp     
         }));
       });
   }

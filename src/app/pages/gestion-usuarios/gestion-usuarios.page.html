@@ -8,13 +8,13 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <!-- Loading State -->
+
   <div *ngIf="cargando" class="ion-text-center ion-padding">
     <ion-spinner></ion-spinner>
     <p>Cargando usuarios...</p>
   </div>
 
-  <!-- Error State -->
+
   <div *ngIf="!cargando && error" class="ion-text-center ion-padding">
     <ion-text color="danger">
       <p>{{ error }}</p>
@@ -25,24 +25,17 @@
     </ion-button>
   </div>
 
-  <!-- Empty State -->
+
   <div *ngIf="!cargando && !error && usuarios.length === 0" class="ion-text-center ion-padding">
     <ion-icon name="people-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
     <h3>No hay usuarios registrados</h3>
     <p>No se encontraron usuarios en el sistema.</p>
   </div>
 
-  <!-- Users List - Versión Simplificada -->
+
   <div class="ion-padding">
     <h2>Usuarios ({{ usuarios.length || 0 }})</h2>
     
-    <!-- Estado de carga -->
-    <div *ngIf="cargando" class="ion-text-center ion-padding">
-      <ion-spinner></ion-spinner>
-      <p>Cargando usuarios...</p>
-    </div>
-    
-    <!-- Mensaje de error -->
     <div *ngIf="error" class="ion-text-center ion-padding">
       <ion-text color="danger">
         <p>{{ error }}</p>
@@ -55,7 +48,7 @@
     
     <!-- Lista de usuarios -->
     <div *ngIf="!cargando && !error">
-      <!-- Debug Info -->
+
       <ion-button expand="block" color="light" (click)="mostrarDebug = !mostrarDebug" size="small" class="ion-margin-bottom">
         <ion-icon slot="start" name="bug"></ion-icon>
         {{ mostrarDebug ? 'Ocultar' : 'Mostrar' }} datos en bruto
@@ -96,7 +89,7 @@
     </div>
   </div>
 
-  <!-- Toast for notifications -->
+
   <ion-toast
     [isOpen]="showToast"
     [message]="toastMessage"

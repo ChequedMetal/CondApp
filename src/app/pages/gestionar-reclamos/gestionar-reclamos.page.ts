@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import {
   IonicModule,
   AlertController,
-  ToastController
+  ToastController,
+  LoadingController
 } from '@ionic/angular';
 import {
   Firestore,
@@ -14,7 +15,8 @@ import {
   collectionData,
   doc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  getDoc
 } from '@angular/fire/firestore';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService, AppUser } from '../../services/auth.service';
@@ -50,7 +52,8 @@ export class GestionarReclamosPage implements OnInit, OnDestroy {
     private firestore: Firestore,
     private auth: AuthService,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private loadingCtrl: LoadingController
   ) {}
 
   ngOnInit() {
@@ -101,24 +104,103 @@ export class GestionarReclamosPage implements OnInit, OnDestroy {
   }
 
   async eliminarReclamo(id: string) {
+    console.log('Intentando eliminar reclamo ID:', id);
+    
+    if (!id) {
+      console.error('ID de reclamo no proporcionado');
+      const toast = await this.toastCtrl.create({
+        message: 'Error: ID de reclamo no válido',
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      await toast.present();
+      return;
+    }
+
     const alert = await this.alertCtrl.create({
       header: 'Eliminar reclamo',
-      message: '¿Confirmas que deseas eliminarlo?',
+      message: '¿Estás seguro de que deseas eliminar este reclamo? Esta acción no se puede deshacer.',
       buttons: [
-        'Cancelar',
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          handler: () => {
+            console.log('Eliminación cancelada por el usuario');
+          }
+        },
         {
           text: 'Eliminar',
           role: 'destructive',
           handler: async () => {
-            await deleteDoc(doc(this.firestore, `reclamos/${id}`));
-            (await this.toastCtrl.create({
-              message: 'Reclamo eliminado',
-              duration: 1500
-            })).present();
+            const loading = await this.loadingCtrl.create({
+              message: 'Eliminando reclamo...',
+              spinner: 'crescent'
+            });
+            await loading.present();
+
+            try {
+              console.log('Eliminando reclamo con ID:', id);
+              
+              // 1. Referencia al documento
+              const reclamoRef = doc(this.firestore, 'reclamos', id);
+              console.log('Referencia al documento creada:', reclamoRef.path);
+              
+              // 2. Verificar si el documento existe antes de intentar eliminarlo
+              const docSnap = await getDoc(reclamoRef);
+              if (!docSnap.exists()) {
+                throw new Error('El reclamo no existe o ya fue eliminado');
+              }
+              
+              // 3. Eliminar de Firestore
+              console.log('Iniciando eliminación en Firestore...');
+              await deleteDoc(reclamoRef);
+              console.log('Documento eliminado de Firestore');
+              
+              // 4. Actualizar la lista local inmediatamente
+              this.reclamos = this.reclamos.filter(r => r.id !== id);
+              console.log('Lista local actualizada. Total de reclamos:', this.reclamos.length);
+              
+              // 5. Mostrar confirmación
+              const toast = await this.toastCtrl.create({
+                message: '✅ Reclamo eliminado correctamente',
+                duration: 2000,
+                color: 'success',
+                position: 'bottom'
+              });
+              
+              await loading.dismiss();
+              await toast.present();
+              
+            } catch (error: any) {
+              console.error('❌ Error al eliminar el reclamo:', error);
+              
+              let errorMessage = 'Error al eliminar el reclamo';
+              if (error?.code === 'permission-denied') {
+                errorMessage = 'No tienes permisos para eliminar este reclamo';
+              } else if (error?.code === 'not-found') {
+                errorMessage = 'El reclamo no existe o ya fue eliminado';
+              }
+              
+              const toast = await this.toastCtrl.create({
+                message: errorMessage,
+                duration: 4000,
+                color: 'danger',
+                position: 'bottom',
+                buttons: [{
+                  text: 'Cerrar',
+                  role: 'cancel'
+                }]
+              });
+              
+              await loading.dismiss();
+              await toast.present();
+            }
           }
         }
       ]
     });
+    
     await alert.present();
   }
 
