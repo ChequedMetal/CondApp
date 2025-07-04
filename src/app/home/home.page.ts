@@ -66,14 +66,14 @@ interface Anuncio {
 
 // **Nueva interfaz para reclamos**
 interface Reclamo {
+  id?: string;
   titulo: string;
   descripcion: string;
   fecha: Date;
   autor: string;
   avatar: string;
-  estado: string;
+  estado: 'APROBADO' | 'RECHAZADO' | 'CERRADO' | 'PENDIENTE';
 }
-
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -96,29 +96,15 @@ export class HomePage implements OnInit, OnDestroy {
   showToast = false;
   toastMessage = '';
   toastColor = 'success';
+  modalImage: string | null = null;
+
 
   anuncios: Anuncio[] = [];
   productos: any[] = [];
 
   // Ahora reclamos está correctamente tipado
-  reclamos: Reclamo[] = [
-    {
-      titulo: 'Ruidos molestos',
-      descripcion: 'Departamento 302 hace fiestas hasta tarde. Solicito intervención.',
-      fecha: new Date(),
-      autor: 'Marcela Núñez',
-      avatar: '',
-      estado: 'Pendiente'
-    },
-    {
-      titulo: 'Luz quemada en pasillo',
-      descripcion: 'El foco del 2° piso lleva días apagado. Solicito reposición.',
-      fecha: new Date(),
-      autor: 'Diego Contreras',
-      avatar: '',
-      estado: 'En progreso'
-    }
-  ];
+reclamos: Reclamo[] = [];
+
 
   cargandoAnuncios = true;
   errorAnuncios: string | null = null;
@@ -147,6 +133,7 @@ export class HomePage implements OnInit, OnDestroy {
 
     this.cargarAnuncios();
     this.cargarProductos();
+    this.cargarReclamos();
 
     this.anunciosService.anuncioAgregado$
       .pipe(takeUntil(this.destroy$))
@@ -232,10 +219,23 @@ export class HomePage implements OnInit, OnDestroy {
 
   generarEnlaceWhatsApp(item: any): string {
     const nombre = item.nombre || item.titulo || 'producto';
-    const mensaje = encodeURIComponent(`¡Hola! Me interesa tu producto "${nombre}". ¿Sigue disponible?`);
+    const mensaje = encodeURIComponent(`¡Hola! Estoy interesad@ en ${nombre} que publicaste en CondAPP. ¿Sigue disponible?`);
     return item.whatsapp ? `https://wa.me/${item.whatsapp}?text=${mensaje}` : '';
   }
 
+  openImage(src: string) {
+    this.modalImage = src;
+    // Deshabilita scroll de fondo
+    const content = document.querySelector('ion-content');
+    content?.classList.add('no-scroll');
+  }
+
+  closeImage() {
+    this.modalImage = null;
+    // Vuelve a habilitar scroll
+    const content = document.querySelector('ion-content');
+    content?.classList.remove('no-scroll');
+  }
   goToPanelAdmin() { this.router.navigate(['/panel']); }
   goToPerfilUsuario() { this.router.navigate(['/perfil-usuario']); }
 
@@ -249,9 +249,36 @@ export class HomePage implements OnInit, OnDestroy {
       this.showToast = true;
     }
   }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  private cargarReclamos() {
+  const ref = collection(this.firestore, 'reclamos');
+  const q   = query(ref, orderBy('fecha', 'desc'));
+  collectionData(q, { idField: 'id' })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((docs: any[]) => {
+      this.reclamos = docs.map(d => ({
+        id:         d.id,
+        titulo:     d.titulo,
+        descripcion: d.mensaje, // ← mapea 'mensaje' a 'descripcion'
+        fecha:      (d.fecha as any)?.toDate?.() ?? new Date(d.fecha),
+        autor:      d.autor,
+        avatar:     d.avatar || 'assets/img/default-avatar.png',
+        estado:     d.estado
+      }));
+    });
+}
+
+eliminarReclamo(id: string) {
+  // Aquí puedes agregar la lógica para eliminar el reclamo,
+  // por ejemplo, llamando a un servicio y actualizando la lista.
+  // Ejemplo básico:
+  this.reclamos = this.reclamos.filter(rec => rec.id !== id);
+  this.toastMessage = 'Reclamo eliminado correctamente';
+  this.toastColor = 'success';
+  this.showToast = true;
+}
 }

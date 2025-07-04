@@ -13,10 +13,10 @@
     <!-- Selección de Imagen -->
     <div class="ion-margin-bottom">
       <ion-item>
-        <ion-label position="floating">Imagen (Opcional)</ion-label>
+        <ion-label position="floating">Imagen Requerida</ion-label>
         <ion-button fill="clear" (click)="seleccionarImagen()" slot="end">
           <ion-icon name="image" slot="icon-only"></ion-icon>
-          Seleccionar
+          Seleccionar Imagen (Requerido)
         </ion-button>
       </ion-item>
       <div *ngIf="imagenPreview" class="imagen-preview ion-margin-bottom">
@@ -53,7 +53,8 @@
 
     <!-- Botones -->
     <div class="ion-margin-top">
-      <ion-button expand="block" type="submit" [disabled]="productoForm.invalid">
+      <ion-button expand="block" type="submit"
+                [disabled]="productoForm.invalid || !imagenPreview">
         <ion-icon name="send" slot="start"></ion-icon>
         Publicar Producto
       </ion-button>
@@ -62,6 +63,6 @@
         Cancelar
       </ion-button>
     </div>
-
+  
   </form>
 </ion-content>

@@ -31,7 +31,8 @@
           <ion-card-header>
             <ion-item lines="none">
               <ion-avatar slot="start">
-                <ion-img [src]="anuncio.avatar || 'assets/img/default-avatar.png'" alt="Avatar de {{ anuncio.autor }}"></ion-img>
+                <ion-img [src]="anuncio.avatar || 'assets/img/default-avatar.png'"
+                  alt="Avatar de {{ anuncio.autor }}"></ion-img>
               </ion-avatar>
               <ion-label>
                 <h2>{{ anuncio.autor || 'Anónimo' }}</h2>
@@ -61,67 +62,82 @@
     </ion-content>
   </ion-tab>
 
- <ion-tab tab="mercado">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Mercado</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-tab tab="mercado">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Mercado</ion-title>
+      </ion-toolbar>
+    </ion-header>
 
-  <ion-content class="ion-padding">
+    <ion-content class="ion-padding">
 
-    <!-- Botón para crear producto -->
-    <ion-button expand="block" color="primary" routerLink="/crear-producto" class="ion-margin-bottom">
-      <ion-icon name="add-outline" slot="start"></ion-icon>
-      Publicar Producto
-    </ion-button>
+      <!-- Botón para crear producto -->
+      <ion-button expand="block" color="primary" routerLink="/crear-producto" class="ion-margin-bottom">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Publicar Producto
+      </ion-button>
 
-    <ion-list lines="none">
-      <!-- Aquí iniciamos el ngFor -->
-      <ion-card *ngFor="let item of productos">
-        <ion-card-header>
-          <ion-item lines="none">
-            <ion-avatar slot="start">
-              <ion-img [src]="item.imagen"></ion-img>
-            </ion-avatar>
-            <ion-label>
-              <h2>{{ item.autor }}</h2>
-              <p>{{ item.fecha | date:'dd MMM yyyy' }}</p>
-            </ion-label>
-          </ion-item>
-          <ion-card-title>{{ item.nombre }}</ion-card-title>
-        </ion-card-header>
+      <ion-list lines="none">
+        <!-- Aquí iniciamos el ngFor -->
+        <ion-list lines="none">
+          <ion-card *ngFor="let item of productos">
+            <!-- Header con avatar del AUTOR, no del producto -->
+            <ion-card-header>
+              <ion-item lines="none">
+                <ion-avatar slot="start">
+                  <!-- Usa avatar del autor o default -->
+                  <ion-img [src]="item.autorAvatar || 'assets/img/default-avatar.png'">
+                  </ion-img>
+                </ion-avatar>
+                <ion-label>
+                  <h2>{{ item.autor }}</h2>
+                  <p>{{ item.fecha | date:'dd MMM yyyy' }}</p>
+                </ion-label>
+              </ion-item>
+              <ion-card-title>{{ item.nombre }}</ion-card-title>
+            </ion-card-header>
 
-        <ion-card-content>
-          <p>{{ item.descripcion }}</p>
-        </ion-card-content>
+            <!-- Aquí insertamos la imagen del PRODUCTO -->
+            <ion-card-content>
+              <img [src]="item.imagen || item.imagenUrl" class="product-image"
+                (click)="openImage(item.imagen || item.imagenUrl)" />
+              <p>{{ item.descripcion }}</p>
+            </ion-card-content>
 
-        <ion-item lines="none">
-          <ion-badge color="success" slot="end">{{ item.precio }}</ion-badge>
-          <ion-button
-            *ngIf="item.whatsapp"
-            fill="outline"
-            color="success"
-            slot="end"
-            [href]="generarEnlaceWhatsApp(item)"
-            target="_blank">
-            <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-            WhatsApp
-          </ion-button>
-        </ion-item>
-      </ion-card>
-      <!-- fin del ngFor -->
+            <ion-item lines="none">
+              <ion-badge slot="start" color="success">{{ item.precio }}</ion-badge>
+              <ion-button *ngIf="item.whatsapp" fill="outline" color="success" slot="end"
+                [href]="generarEnlaceWhatsApp(item)" target="_blank">
+                <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+                WhatsApp
+              </ion-button>
+            </ion-item>
+          </ion-card>
 
-      <!-- Mensaje si no hay productos -->
-      <div *ngIf="productos.length === 0" class="ion-text-center ion-padding">
-        <ion-icon name="cart-outline" style="font-size: 48px; color: var(--ion-color-medium)"></ion-icon>
-        <h3>No hay productos publicados</h3>
-        <p>¡Publica el primer producto!</p>
-      </div>
-    </ion-list>
+          <div *ngIf="productos.length === 0" class="ion-text-center ion-padding">
+            <ion-icon name="cart-outline" style="font-size: 48px;"></ion-icon>
+            <h3>No hay productos publicados</h3>
+            <p>¡Publica el primero!</p>
+          </div>
+        </ion-list>
 
-  </ion-content>
-</ion-tab>
+        <!-- Overlay para zoom de imagen -->
+        <div class="image-overlay" *ngIf="modalImage">
+          <div class="backdrop" (click)="closeImage()"></div>
+          <img [src]="modalImage" class="zoomed-full" />
+        </div>
+        <!-- fin del ngFor -->
+
+        <!-- Mensaje si no hay productos -->
+        <div *ngIf="productos.length === 0" class="ion-text-center ion-padding">
+          <ion-icon name="cart-outline" style="font-size: 48px; color: var(--ion-color-medium)"></ion-icon>
+          <h3>No hay productos publicados</h3>
+          <p>¡Publica el primer producto!</p>
+        </div>
+      </ion-list>
+
+    </ion-content>
+  </ion-tab>
   <!-- TAB RECLAMOS -->
   <ion-tab tab="reclamos">
     <ion-header>
@@ -131,30 +147,61 @@
     </ion-header>
 
     <ion-content class="ion-padding">
+      <!-- 1) Botón para crear reclamo -->
+      <ion-button expand="block" color="warning" routerLink="/crear-reclamo" class="ion-margin-bottom">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Publicar Reclamo
+      </ion-button>
+
+      <!-- 2) Listado dinámico -->
       <ion-list lines="none">
-        <ion-card *ngFor="let reclamo of reclamos">
+        <ion-card *ngFor="let rec of reclamos">
           <ion-card-header>
             <ion-item lines="none">
               <ion-avatar slot="start">
-                <ion-img [src]="reclamo.avatar || 'assets/img/default-avatar.png'"></ion-img>
+                <ion-img [src]="rec.avatar"></ion-img>
               </ion-avatar>
               <ion-label>
-                <h2>{{ reclamo.autor }}</h2>
-                <p>{{ reclamo.fecha | date:'dd MMM yyyy' }}</p>
+                <h2>{{ rec.autor }}</h2>
+                <p>{{ rec.fecha | date:'dd MMM yyyy' }}</p>
               </ion-label>
+              <ion-badge slot="end" [color]="
+                       rec.estado === 'APROBADO' ? 'success'
+                       : rec.estado === 'RECHAZADO' ? 'danger'
+                       : rec.estado === 'CERRADO'   ? 'medium'
+                       : 'warning'
+                     ">
+                {{ rec.estado }}
+              </ion-badge>
             </ion-item>
-            <ion-card-title>{{ reclamo.titulo }}</ion-card-title>
+            <ion-card-title>{{ rec.titulo }}</ion-card-title>
           </ion-card-header>
-
           <ion-card-content>
-            <p>{{ reclamo.descripcion }}</p>
+            <p>{{ rec.descripcion }}</p>
+            <!-- Botón de eliminar (solo admins, dentro de cada card) -->
+            <div class="ion-text-right">
+              <ion-button
+                *ngIf="userRole === 'admin'"
+                fill="solid"
+                color="danger"
+                size="small"
+                (click)="eliminarReclamo(rec.id!)"
+                class="trash-btn"
+              >
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
           </ion-card-content>
-
-          <ion-item lines="none">
-            <ion-badge slot="end" color="danger">{{ reclamo.estado }}</ion-badge>
-          </ion-item>
         </ion-card>
       </ion-list>
+
+      <!-- Mensaje si no hay reclamos -->
+      <div *ngIf="reclamos.length === 0" class="ion-text-center ion-padding">
+        <ion-icon name="alert-circle-outline" style="font-size: 48px; color: var(--ion-color-medium)">
+        </ion-icon>
+        <h3>No hay reclamos abiertos</h3>
+        <p>¡Publica el primero!</p>
+      </div>
     </ion-content>
   </ion-tab>
 
@@ -176,7 +223,7 @@
       <ion-fab-button>
         <ion-icon name="chatbubbles-outline"></ion-icon>
       </ion-fab-button>
-  
+
       <ion-fab-button>
         <ion-icon name="contrast-outline"></ion-icon>
       </ion-fab-button>
@@ -201,10 +248,6 @@
 </ion-tabs>
 
 <!-- Toast para mensajes -->
-<ion-toast
-  [isOpen]="showToast"
-  [message]="toastMessage"
-  [duration]="3000"
-  [color]="toastColor"
+<ion-toast [isOpen]="showToast" [message]="toastMessage" [duration]="3000" [color]="toastColor"
   (didDismiss)="showToast = false">
 </ion-toast>

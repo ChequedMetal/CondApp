@@ -12,6 +12,14 @@ import {
   AlertController,
   ToastController
 } from '@ionic/angular';
+import {
+  Firestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from '@angular/fire/firestore';
+import { AuthService, AppUser } from '../../services/auth.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-crear-reclamo',
@@ -26,73 +34,77 @@ import {
 })
 export class CrearReclamoPage implements OnInit {
   reclamoForm: FormGroup;
-  reclamos: Array<{
-    id: number;
-    mensaje: string;
-    fecha: string;
-    autor: string;
-    estado: string;
-  }> = [];
+  currentUser!: AppUser;
 
   constructor(
     private fb: FormBuilder,
+    private firestore: Firestore,
+    private auth: AuthService,
     private navCtrl: NavController,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController
   ) {
-    // Construcción del formulario (sólo mensaje, como en tu versión original)
     this.reclamoForm = this.fb.group({
       mensaje: ['', Validators.required]
     });
   }
 
   ngOnInit() {
-    // Carga inicial de reclamos desde localStorage
-    const saved = JSON.parse(localStorage.getItem('reclamos') || '[]');
-    this.reclamos = Array.isArray(saved) ? saved : [];
+    // Tomamos una sola vez los datos del usuario logueado
+    this.auth.appUser$
+      .pipe(take(1))
+      .subscribe(user => {
+        if (user) {
+          this.currentUser = user;
+        } else {
+          // Si no hay usuario, podrías redirigir al login
+          this.navCtrl.navigateRoot('/login');
+        }
+      });
   }
 
-  /** Envía el reclamo y guarda en localStorage */
+  /** Envía el reclamo a Firestore */
   async enviar() {
     if (this.reclamoForm.invalid) {
       const alert = await this.alertCtrl.create({
         header: 'Formulario incompleto',
-        message: 'Por favor ingresa una descripción',
+        message: 'Por favor ingresa el mensaje del reclamo.',
         buttons: ['OK']
       });
-      return alert.present();
+      await alert.present();
+      return;
     }
 
     const { mensaje } = this.reclamoForm.value;
-    const nuevo = {
-      id: this.reclamos.length
-        ? Math.max(...this.reclamos.map(r => r.id)) + 1
-        : 1,
+
+    const nuevoReclamo = {
       mensaje,
-      fecha: new Date().toISOString(),
-      autor: 'Vecino',       // FUTURO: sustituir por autor real via AuthService
-      estado: 'nuevo'        // FUTURO: podrías usar otros estados por defecto
+      fecha:     serverTimestamp(),
+      userId:    this.currentUser.uid,
+      autor:     this.currentUser.nombre,
+      casa:      this.currentUser.casa || '',
+      avatar:    (this.currentUser as any).avatar || '',
+      estado:    'pendiente' as const
     };
 
-    // Guardar en localStorage
-    this.reclamos.push(nuevo);
-    localStorage.setItem('reclamos', JSON.stringify(this.reclamos));
+    try {
+      const ref = collection(this.firestore, 'reclamos');
+      await addDoc(ref, nuevoReclamo);
 
-    // Mostrar confirmación
-    const toast = await this.toastCtrl.create({
-      message: 'Reclamo enviado correctamente',
-      duration: 2000
-    });
-    await toast.present();
+      await this.toastCtrl.create({
+        message: 'Reclamo enviado correctamente',
+        duration: 2000
+      }).then(toast => toast.present());
 
-    // Reset y navegación atrás
-    this.reclamoForm.reset();
-    this.navCtrl.back();
-
-    // FUTURO: aquí llamarías a tu servicio Firebase en lugar de localStorage
-    // this.reclamosService.crearReclamo(nuevo)
-    //   .then(() => this.navCtrl.navigateRoot('/home'))
-    //   .catch(err => console.error('Error Firebase:', err));
+      this.navCtrl.back();
+    } catch (error) {
+      console.error('Error creando reclamo:', error);
+      await this.toastCtrl.create({
+        message: 'Error al enviar reclamo',
+        duration: 2000,
+        color: 'danger'
+      }).then(toast => toast.present());
+    }
   }
 
   /** Cancela y vuelve atrás */

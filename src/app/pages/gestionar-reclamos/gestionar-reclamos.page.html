@@ -1,14 +1,15 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Gestionar Reclamos</ion-title>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
+    <ion-title>Gestionar Reclamos</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Filtro de estado -->
   <ion-item>
     <ion-label>Filtrar por estado</ion-label>
     <ion-select [(ngModel)]="filtroEstado">
@@ -20,46 +21,51 @@
     </ion-select>
   </ion-item>
 
-  <!-- Listado de reclamos -->
   <ion-list>
-    <ion-card *ngFor="let reclamo of reclamosFiltrados">
+    <ion-card *ngFor="let rec of reclamosFiltrados">
       <ion-card-header>
         <ion-item lines="none">
+          <ion-avatar slot="start">
+            <ion-img [src]="rec.avatar || 'assets/img/default-avatar.png'"></ion-img>
+          </ion-avatar>
           <ion-label>
-            <h3>{{ reclamo.autor }}</h3>
-            <p>{{ reclamo.casa }} · {{ reclamo.fecha }}</p>
+            <h3>{{ rec.autor }}</h3>
+            <p>{{ rec.casa }} · {{ rec.fecha | date:'dd MMM yyyy, HH:mm' }}</p>
           </ion-label>
+          <ion-badge slot="end"
+                     [color]="
+                       rec.estado === 'aprobado'   ? 'success'
+                       : rec.estado === 'rechazado' ? 'danger'
+                       : rec.estado === 'cerrado'   ? 'medium'
+                       : 'warning'
+                     ">
+            {{ rec.estado | uppercase }}
+          </ion-badge>
         </ion-item>
+        <ion-card-title>{{ rec.titulo }}</ion-card-title>
       </ion-card-header>
 
       <ion-card-content>
-        <p style="white-space: pre-wrap;">{{ reclamo.mensaje }}</p>
-        <p><strong>Estado:</strong> {{ reclamo.estado | uppercase }}</p>
+        <p style="white-space: pre-wrap;">{{ rec.mensaje }}</p>
       </ion-card-content>
 
-      <ion-card-content class="ion-text-right">
-        <!-- Botones de estado solo para admin -->
+      <ion-card-content class="ion-text-right" style="display:flex; gap:8px; justify-content:flex-end;">
         <ng-container *ngIf="userRole === 'admin'">
-          <ion-button color="success" size="small" (click)="cambiarEstado(reclamo, 'aprobado')">
-            Aprobar
-          </ion-button>
-          <ion-button color="danger" size="small" (click)="cambiarEstado(reclamo, 'rechazado')">
-            Rechazar
-          </ion-button>
-          <ion-button color="medium" size="small" (click)="cambiarEstado(reclamo, 'cerrado')">
-            Cerrar
-          </ion-button>
+          <ion-button color="success" size="small" (click)="cambiarEstado(rec, 'aprobado')">Aprobar</ion-button>
+          <ion-button color="danger"  size="small" (click)="cambiarEstado(rec, 'rechazado')">Rechazar</ion-button>
+          <ion-button color="medium"  size="small" (click)="cambiarEstado(rec, 'cerrado')">Cerrar</ion-button>
         </ng-container>
-
-        <!-- Botón de eliminar para propietario o admin -->
-        <ion-button *ngIf="reclamo.userId === userId || userRole === 'admin'"
-                    fill="clear"
-                    color="danger"
-                    size="small"
-                    (click)="eliminarReclamo(reclamo.id)">
+        <ion-button *ngIf="rec.userId===userId || userRole==='admin'"
+                    fill="clear" color="danger" size="small"
+                    (click)="eliminarReclamo(rec.id!)">
           <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
         </ion-button>
       </ion-card-content>
     </ion-card>
+
+    <div *ngIf="reclamosFiltrados.length===0" class="ion-text-center ion-padding">
+      <ion-icon name="alert-circle-outline" style="font-size:48px; color:var(--ion-color-medium)"></ion-icon>
+      <h3>No hay reclamos para mostrar</h3>
+    </div>
   </ion-list>
 </ion-content>
